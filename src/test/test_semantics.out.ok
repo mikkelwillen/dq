@@ -1,0 +1,190 @@
+Testing: Semantics
+*** Example: Double Beam-Splitter
+Diagram of g = H ++ H:
+  .---. .---.  
+--| H |-| H |--
+  '---' '---'  
+Semantics:
+1 0
+0 1
+Initial state of |0>: 1 0
+eval g |0> = 1 0
+State Distribution:
+|0> : 1
+|1> : 0
+Testing interpretation against semantics: OK
+***
+*** Example: Two Qubits (NOT on second qubit)
+Diagram of g = (H ++ H) ** X:
+  .---. .---.  
+--| H |-| H |--
+  '---' '---'  
+               
+     .---.     
+-----| X |-----
+     '---'     
+Semantics:
+0 1 0 0
+1 0 0 0
+0 0 0 1
+0 0 1 0
+Initial state of |01>: 0 1 0 0
+eval g |01> = 1 0 0 0
+State Distribution:
+|00> : 1
+|01> : 0
+|10> : 0
+|11> : 0
+Testing interpretation against semantics: OK
+***
+*** Example: Two Qubits Swapped
+Diagram of g = (H ++ H) ** X ++ SW:
+  .---. .---.        
+--| H |-| H |-.   .--
+  '---' '---'  \ /   
+                /    
+     .---.     / \   
+-----| X |----'   '--
+     '---'           
+Semantics:
+0 1 0 0
+0 0 0 1
+1 0 0 0
+0 0 1 0
+Initial state of |01>: 0 1 0 0
+eval g |01> = 1 0 0 0
+State Distribution:
+|00> : 1
+|01> : 0
+|10> : 0
+|11> : 0
+Testing interpretation against semantics: OK
+***
+*** Example: Swap
+Diagram of g = I ** SW ++ SW ** I:
+               
+--------.   .--
+         \ /   
+          /    
+         / \   
+--.   .-'   '--
+   \ /         
+    /          
+   / \         
+--'   '--------
+               
+Semantics:
+1 0 0 0 0 0 0 0
+0 0 1 0 0 0 0 0
+0 0 0 0 1 0 0 0
+0 0 0 0 0 0 1 0
+0 1 0 0 0 0 0 0
+0 0 0 1 0 0 0 0
+0 0 0 0 0 1 0 0
+0 0 0 0 0 0 0 1
+Initial state of |011>: 0 0 0 1 0 0 0 0
+eval g |011> = 0 0 0 0 0 1 0 0
+State Distribution:
+|000> : 0
+|001> : 0
+|010> : 0
+|011> : 0
+|100> : 0
+|101> : 1
+|110> : 0
+|111> : 0
+Testing interpretation against semantics: OK
+***
+*** Example: SwapSwap
+Diagram of g = SW ++ X ** X ++ SW:
+        .---.        
+--.   .-| X |-.   .--
+   \ /  '---'  \ /   
+    /           /    
+   / \  .---.  / \   
+--'   '-| X |-'   '--
+        '---'        
+Semantics:
+0 0 0 1
+0 0 1 0
+0 1 0 0
+1 0 0 0
+Initial state of |10>: 0 0 1 0
+eval g |10> = 0 1 0 0
+State Distribution:
+|00> : 0
+|01> : 1
+|10> : 0
+|11> : 0
+Testing interpretation against semantics: OK
+***
+*** Example: Swap with Y
+Diagram of g = SW ++ Y ** X ++ SW:
+        .---.        
+--.   .-| Y |-.   .--
+   \ /  '---'  \ /   
+    /           /    
+   / \  .---.  / \   
+--'   '-| X |-'   '--
+        '---'        
+Semantics:
+ 0  0  0 ~i
+ 0  0  i  0
+ 0 ~i  0  0
+ i  0  0  0
+Initial state of |10>: 0 0 1 0
+eval g |10> = 0 i 0 0
+State Distribution:
+|00> : 0
+|01> : 1
+|10> : 0
+|11> : 0
+Testing interpretation against semantics: OK
+***
+The following two systems are identical
+*** Example: System 1
+Diagram of g = I ** H ++ CX ++ Z ** Z ++ CX ++ I ** H:
+              .---.              
+----------*---| Z |---*----------
+          |   '---'   |          
+          |           |          
+  .---. .-+-. .---. .-+-. .---.  
+--| H |-| X |-| Z |-| X |-| H |--
+  '---' '---' '---' '---' '---'  
+Semantics:
+0 1 0 0
+1 0 0 0
+0 0 0 1
+0 0 1 0
+Initial state of |10>: 0 0 1 0
+eval g |10> = 0 0 0 1
+State Distribution:
+|00> : 0
+|01> : 0
+|10> : 0
+|11> : 1
+Testing interpretation against semantics: OK
+***
+*** Example: System 2
+Diagram of g = I ** X:
+         
+---------
+         
+         
+  .---.  
+--| X |--
+  '---'  
+Semantics:
+0 1 0 0
+1 0 0 0
+0 0 0 1
+0 0 1 0
+Initial state of |10>: 0 0 1 0
+eval g |10> = 0 0 0 1
+State Distribution:
+|00> : 0
+|01> : 0
+|10> : 0
+|11> : 1
+Testing interpretation against semantics: OK
+***
