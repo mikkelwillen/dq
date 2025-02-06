@@ -15,21 +15,21 @@
 import "qsim"
 open gates
 
-def sim (v7:*st[3]) : *st[3] =
-  let v8 = gateH 1 v7
-  let v9 = cntrlX 1 0 v8
-  let v10 = gateZ 0 v9
-  let v11 = gateZ 1 v10
-  let v12 = cntrlX 1 0 v11
-  let v13 = gateH 1 v12
-  let v14 = swap 1 v13
-  let v15 = cntrlX 1 0 v14
-  in gateY 2 v15
+def sim (v:*st[3]) : *st[3] =
+  let v = gateH 1 v
+  let v = cntrlX 1 0 v
+  let v = gateZ 0 v
+  let v = gateZ 1 v
+  let v = cntrlX 1 0 v
+  let v = gateH 1 v
+  let v = swap 1 v
+  let v = cntrlX 1 0 v
+  in gateY 2 v
 
 entry test (_i:i64) =
-  distmax(dist(sim (fromKet (replicate 3 0)))) |> (.0)
+  distmax(dist(sim (fromKet [1,0,1]))) |> (.0)
 
 -- ==
 -- entry: test
 -- input { 0i64 }
--- output { [0i64, 0i64, 1i64] }
+-- output { [1i64, 0i64, 0i64] }

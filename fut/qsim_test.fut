@@ -22,6 +22,8 @@ entry test_gateX [n] (q:i64) (k:[n]i64) : [n]i64 =
 -- output { [0i64,1i64] }
 -- input { 2i64 [0i64,0i64,0i64,0i64] }
 -- output { [0i64,0i64,1i64,0i64] }
+-- input { 2i64 [1i64,0i64,1i64,1i64] }
+-- output { [1i64,0i64,0i64,1i64] }
 
 entry test_cntrlX10 [n] (k:[n]i64) : [n]i64 =
   test_circuit (g.cntrlX 1 0) k

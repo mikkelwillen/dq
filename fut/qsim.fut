@@ -58,7 +58,7 @@ module gates : gates with c = complex.complex = {
   def rsqrt2eipi4 = complex.(rsqrt2*exp ipi4)
 
   def X a b = (b, a)
-  def Y a b = complex.((neg a,b))
+  def Y a b = complex.((ni*b,i*a))
   def Z a b = complex.((a, neg b))
   def H a b = complex.((a*rsqrt2+b*rsqrt2, a*rsqrt2-b*rsqrt2))
   def T a b = complex.((rsqrt2*a, rsqrt2eipi4*b))
