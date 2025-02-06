@@ -65,6 +65,16 @@ module gates : gates with c = complex.complex = {
 
   def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
 
+  def gate1 [n] (q:q) (g:gate1) (v: *st[n]) : *st[n] =
+    let d = dst n q
+    let v = v :> *[(2**q*2)*d]c
+    let v : *[2**q][2][d]c = unflatten (unflatten v)
+    let v : *[2**q][d][2]c = map transpose v
+    let v = map (map (\p -> let (x,y) = g p[0] p[1]
+			    in [x,y])) v
+    let v = map transpose v
+    in flatten (flatten v) :> *st[n]
+
   def gate1C [n] (c:i64) (q:q) (g:gate1) (v: *st[n]) : *st[n] =
     let d = dst n (q+c)
     let xs = map (\i -> map (\j -> 2*d*((i+1) * 2**c - 1) + j) (iota d)
@@ -116,19 +126,19 @@ module gates : gates with c = complex.complex = {
     gate1C m q T v
 
   def gateX [n] (q:q) (v: *st[n]) : *st[n] =
-    cntrlX 0 q v
+    gate1 q X v
 
   def gateY [n] (q:q) (v: *st[n]) : *st[n] =
-    cntrlY 0 q v
+    gate1 q Y v
 
   def gateZ [n] (q:q) (v: *st[n]) : *st[n] =
-    cntrlZ 0 q v
+    gate1 q Z v
 
   def gateH [n] (q:q) (v: *st[n]) : *st[n] =
-    cntrlH 0 q v
+    gate1 q H v
 
   def gateT [n] (q:q) (v: *st[n]) : *st[n] =
-    cntrlT 0 q v
+    gate1 q T v
 
   type ket [n] = [n]i64
 
