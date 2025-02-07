@@ -7,14 +7,17 @@ open gates
 def repeat [n] b e (f : i64 -> *st[n] -> *st[n]) (s:*st[n]) : *st[n] =
   loop s = s for i in b..<e do f i s
 
+-- Some manual gate-fusion
+def gateHX [n] q (v:*st[n]) = gateX q (gateH q v)
+def gateXH [n] q (v:*st[n]) = gateH q (gateX q v)
+
 def grover_diff [n] (s:*st[n]) : *st[n] =
-  let s = repeat 0 n gateH s
-  let s = repeat 0 n gateX s
+  let s = repeat 0 n gateHX s
   let s = gateH (n-1) s
   let s = cntrlX (n-1) 0 s
   let s = gateH (n-1) s
-  let s = repeat 0 n gateX s
-  in repeat 0 n gateH s
+  let s = repeat 0 n gateXH s
+  in s
 
 def encodeNum [n] (i:i64) (s:*st[n]) : *st[n] =
   (loop (s,n,i) = (s,n,i) while n > 0 do
