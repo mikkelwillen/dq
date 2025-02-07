@@ -128,8 +128,7 @@ structure Comp :> COMP = struct
           val cni = APP("C.mk_im", [CONST "(-1)"])
           val rsqrt2 = APP("C.mk_re", [CONST "(1.0 / f64.sqrt(2.0))"])
           val rnsqrt2 = APP("C.mk_re", [CONST "((-1.0) / f64.sqrt(2.0))"])
-          val tmp = APP("C.exp", [APP("C.mk_im",[CONST "(f64.pi/4)"])])
-          val rsqrt2eipi4 = APP("C.*", [rsqrt2,tmp])
+          val eipi4 = APP("C.exp", [APP("C.mk_im",[CONST "(f64.pi/4)"])])
           fun ty n = "[" ^ Int.toString n ^ "][" ^ Int.toString n ^ "]C.complex"
           fun binds nil = ret ()
             | binds ((s,n,e)::rest) =
@@ -144,8 +143,8 @@ structure Comp :> COMP = struct
                              ARR[c0,cn1]]),
                 ("H", 2, ARR[ARR[rsqrt2,rsqrt2],
                              ARR[rsqrt2,rnsqrt2]]),
-                ("T", 2, ARR[ARR[rsqrt2,c0],
-                             ARR[c0,rsqrt2eipi4]]),
+                ("T", 2, ARR[ARR[c1,c0],
+                             ARR[c0,eipi4]]),
                 ("SW", 4, ARR[ARR[c1,c0,c0,c0],
                               ARR[c0,c0,c1,c0],
                               ARR[c0,c1,c0,c0],

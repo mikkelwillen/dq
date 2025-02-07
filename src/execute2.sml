@@ -17,7 +17,7 @@ structure Execute2 :> EXECUTE = struct
   (* Execution2 (standard imperative interpreter) *)
 
   val rsqrt2 = C.fromRe (1.0 / Math.sqrt 2.0)
-  val rsqrt2eipi4 = C.*(rsqrt2,C.exp(C.fromIm(Math.pi/4.0)))
+  val eipi4 = C.exp(C.fromIm(Math.pi/4.0))
 
   open Circuit
 
@@ -77,12 +77,7 @@ structure Execute2 :> EXECUTE = struct
                                     in upd x (C.+(C.*(rsqrt2,xv),C.*(rsqrt2,yv)))
                                      ; upd y (C.-(C.*(rsqrt2,xv),C.*(rsqrt2,yv)))
                                     end)
-                | T => gate q c (fn (x,y) =>
-                                    let val xv = get x
-                                        val yv = get y
-                                    in upd x (C.*(rsqrt2,xv))
-                                     ; upd y (C.*(rsqrt2eipi4,yv))
-                                    end)
+                | T => gate q c (fn (x,y) => upd y (C.*(eipi4,get y)))
                 | SW => gate2 q c (fn (_,x,y,_) =>
                                       let val xv = get x
                                           val yv = get y

@@ -27,7 +27,7 @@ structure Execute :> EXECUTE = struct
   type parray2 = PA2.parray2
 
   val rsqrt2 = C.fromRe (1.0 / Math.sqrt 2.0)
-  val rsqrt2eipi4 = C.*(rsqrt2,C.exp(C.fromIm(Math.pi/4.0)))
+  val eipi4 = C.exp(C.fromIm(Math.pi/4.0))
 
   open Circuit
 
@@ -64,13 +64,7 @@ structure Execute :> EXECUTE = struct
                in PA.update(a,0,x')
                 ; PA.update(a,1,y')
                end
-        | T => let val x = PA.sub(a,0)
-                   val y = PA.sub(a,1)
-                   val x' = C.*(rsqrt2,x)
-                   val y' = C.*(rsqrt2eipi4,y)
-               in PA.update(a,0,x')
-                ; PA.update(a,1,y')
-               end
+        | T => PA.update(a,1,C.*(eipi4,PA.sub(a,1)))
         | SW => let val x = PA.sub(a,1)
                     val y = PA.sub(a,2)
                 in PA.update(a,1,y)

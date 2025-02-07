@@ -59,9 +59,10 @@ structure Semantics :> SEMANTICS = struct
   fun sem (t:Circuit.t) : mat =
       let open Circuit
           val c0 = C.fromInt 0
+          val c1 = C.fromInt 1
           val ci = C.fromIm 1.0
           val rsqrt2 = C.fromRe (1.0 / Math.sqrt 2.0)
-          val rsqrt2eipi4 = C.*(rsqrt2,C.exp(C.fromIm(Math.pi/4.0)))
+          val eipi4 = C.exp(C.fromIm(Math.pi/4.0))
       in case t of
              I => fromIntM [[1,0],
                             [0,1]]
@@ -73,8 +74,8 @@ structure Semantics :> SEMANTICS = struct
                             [0,~1]]
            | H => M.fromListList [[rsqrt2,rsqrt2],
                                   [rsqrt2,C.~ rsqrt2]]
-           | T => M.fromListList [[rsqrt2,c0],
-                                  [c0,rsqrt2eipi4]]
+           | T => M.fromListList [[c1,c0],
+                                  [c0,eipi4]]
            | SW => fromIntM [[1,0,0,0],
                              [0,0,1,0],
                              [0,1,0,0],

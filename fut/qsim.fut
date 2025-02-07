@@ -60,13 +60,13 @@ module gates : gates with c = complex.complex = {
   def ni = complex.mk_im (-1.0)
   def rsqrt2 = complex.mk_re (1.0 / f64.sqrt 2.0)
   def ipi4 = complex.mk_im (f64.pi / 4)
-  def rsqrt2eipi4 = complex.(rsqrt2*exp ipi4)
+  def eipi4 = complex.(exp ipi4)
 
   def X a b = (b, a)
   def Y a b = complex.((ni*b, i*a))
   def Z a b = complex.((a, neg b))
   def H a b = complex.((a*rsqrt2+b*rsqrt2, a*rsqrt2-b*rsqrt2))
-  def T a b = complex.((rsqrt2*a, rsqrt2eipi4*b))
+  def T a b = complex.((a, b*eipi4))
 
   def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
 
@@ -77,6 +77,15 @@ module gates : gates with c = complex.complex = {
     let v : *[2**q][d][2]c = map transpose v
     let v = map (map (\p -> let (x,y) = g p[0] p[1]
 			    in [x,y])) v
+    let v = map transpose v
+    in flatten (flatten v) :> *st[n]
+
+  def gate1snd [n] (q:q) (g:gate1snd) (v: *st[n]) : *st[n] =  -- e.g., for Z
+    let d = dst n q
+    let v = v :> *[(2**q*2)*d]c
+    let v : *[2**q][2][d]c = unflatten (unflatten v)
+    let v : *[2**q][d][2]c = map transpose v
+    let v = map (map (\p -> [p[0],g p[1]])) v
     let v = map transpose v
     in flatten (flatten v) :> *st[n]
 
@@ -137,13 +146,13 @@ module gates : gates with c = complex.complex = {
     gate1 q Y v
 
   def gateZ [n] (q:q) (v: *st[n]) : *st[n] =
-    gate1 q Z v
+    gate1snd q (complex.neg) v
 
   def gateH [n] (q:q) (v: *st[n]) : *st[n] =
     gate1 q H v
 
   def gateT [n] (q:q) (v: *st[n]) : *st[n] =
-    gate1 q T v
+    gate1snd q (\c -> complex.(c*eipi4)) v
 
   type ket [n] = [n]i64
 
