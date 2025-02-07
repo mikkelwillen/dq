@@ -5,8 +5,8 @@ module type gates = {
   type q = i64        -- qubit index
 
   type^ gate1snd = c -> c                                      -- C -> C; gate on the form [[1,0],[0,a]]
-  type^ gate1 = (c,c) -> (c,c)                                 -- C^2 -> C^2
-  type^ gate2 = (c,c,c,c) -> (c,c,c,c)                         -- C^4 -> C^4
+  type^ gate1 = c -> c -> (c,c)                                -- C^2 -> C^2
+  type^ gate2 = c -> c -> c -> c -> (c,c,c,c)                  -- C^4 -> C^4
 
   type st[n] = [2**n]c
 
@@ -36,6 +36,11 @@ module type gates = {
 
   val dist    [n] : st[n] -> dist[n]
   val distmax [n] : dist[n] -> (ket[n],f64)
+
+  -- Some utility functions
+  val <*<      'a : (q -> *a -> *a) -> (q -> *a -> *a) -> (q -> *a -> *a)
+  val >*>      'a : (q -> *a -> *a) -> (q -> *a -> *a) -> (q -> *a -> *a)
+  val repeat   'a : i64 -> (i64 -> *a -> *a) -> *a -> *a
 }
 
 
@@ -46,8 +51,8 @@ module gates : gates with c = complex.complex = {
   type q = i64
 
   type^ gate1snd = c -> c
-  type^ gate1 = (c,c) -> (c,c)
-  type^ gate2 = (c,c,c,c) -> (c,c,c,c)
+  type^ gate1 = c -> c -> (c,c)
+  type^ gate2 = c -> c -> c -> c -> (c,c,c,c)
 
   type st[n] = [2**n]c
 
@@ -57,11 +62,11 @@ module gates : gates with c = complex.complex = {
   def ipi4 = complex.mk_im (f64.pi / 4)
   def rsqrt2eipi4 = complex.(rsqrt2*exp ipi4)
 
-  def X (a, b) = (b, a)
-  def Y (a, b) = complex.((ni*b, i*a))
-  def Z (a, b) = complex.((a, neg b))
-  def H (a, b) = complex.((a*rsqrt2+b*rsqrt2, a*rsqrt2-b*rsqrt2))
-  def T (a, b) = complex.((rsqrt2*a, rsqrt2eipi4*b))
+  def X a b = (b, a)
+  def Y a b = complex.((ni*b, i*a))
+  def Z a b = complex.((a, neg b))
+  def H a b = complex.((a*rsqrt2+b*rsqrt2, a*rsqrt2-b*rsqrt2))
+  def T a b = complex.((rsqrt2*a, rsqrt2eipi4*b))
 
   def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
 
@@ -70,7 +75,7 @@ module gates : gates with c = complex.complex = {
     let v = v :> *[(2**q*2)*d]c
     let v : *[2**q][2][d]c = unflatten (unflatten v)
     let v : *[2**q][d][2]c = map transpose v
-    let v = map (map (\p -> let (x,y) = g (p[0],p[1])
+    let v = map (map (\p -> let (x,y) = g p[0] p[1]
 			    in [x,y])) v
     let v = map transpose v
     in flatten (flatten v) :> *st[n]
@@ -80,7 +85,7 @@ module gates : gates with c = complex.complex = {
     let xs = map (\i -> map (\j -> 2*d*((i+1) * 2**c - 1) + j) (iota d)
 		 ) (iota (2**q)) |> flatten
     let ys = map (\x -> x+d) xs
-    let ccs = map2 (\x y -> g (v[x],v[y])) xs ys
+    let ccs = map2 (\x y -> g v[x] v[y]) xs ys
     in scatter v (xs++ys) (map (.0) ccs ++ map (.1) ccs)
 
   def gate1sndC [n] (c:i64) (q:q) (g:gate1snd) (v: *st[n]) : *st[n] =
@@ -95,7 +100,7 @@ module gates : gates with c = complex.complex = {
     let xs = map (\i -> map (\j -> 4*d*i+j) (iota d)
 		 ) (iota (2**q)) |> flatten
     let ys = map (\x -> (x+d,x+d+d,x+d+d+d)) xs
-    let ccs = map2 (\x y -> g (v[x],v[y.0],v[y.1],v[y.2])) xs ys
+    let ccs = map2 (\x y -> g v[x] v[y.0] v[y.1] v[y.2]) xs ys
     in scatter v (xs++map(.0)ys++map(.1)ys++map(.2)ys)
 	       (map(.0)ccs++map(.1)ccs++map(.2)ccs++map(.3)ccs)
 
@@ -104,11 +109,11 @@ module gates : gates with c = complex.complex = {
     let xs = map (\i -> map (\j -> 4*d*i+j+d) (iota d)
 		 ) (iota (2**q)) |> flatten
     let ys = map (+d) xs
-    let ccs = map2 (\x y -> g (v[x],v[y])) xs ys
+    let ccs = map2 (\x y -> g v[x] v[y]) xs ys
     in scatter v (xs++ys) (map(.0)ccs++map(.1)ccs)
 
   def swap [n] (q:q) (v: *st[n]) : *st[n] =
-    gate2mid q (\(a,b) -> (b,a)) v
+    gate2mid q (\a b -> (b,a)) v
 
   def cntrlX [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
     gate1C m q X v
@@ -168,4 +173,13 @@ module gates : gates with c = complex.complex = {
 
   def distmax [n] (d:dist[n]) =
     reduce (\x y -> if x.1 > y.1 then x else y) d[0] d
+
+  def repeat 'a n (f : i64 -> *a -> *a) (s:*a) : *a =
+    loop s = s for i in 0..<n do f i s
+
+  def (<*<) 'a (f:q -> *a -> *a) (g:q -> *a -> *a) : q -> *a -> *a =
+    \q (v:*a) : *a -> f q (g q v)
+
+  def (>*>) 'a (f:q -> *a -> *a) (g:q -> *a -> *a) : q -> *a -> *a =
+    \q (v:*a) : *a -> g q (f q v)
 }
