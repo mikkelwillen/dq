@@ -14,15 +14,19 @@ Futhark quantum simulation library, which is also part of the sources.
 
 ## Library Structure
 
-- `fut/`: [Futhark](http://futhark-lang.org) data-parallel gate library. The
-  library can be used on its own for writing quantum algorithms or it can be
-  used as a target library for high-level languages.
+- `fut/`: [Futhark](http://futhark-lang.org) data-parallel [gate library](/fut/qsim.fut).
+  The library can be used on its own for writing
+  quantum algorithms (e.g., [Grover's algorithm](/fut/grover.fut)) or it can be
+  used as a target library for high-level languages. The library supports gate
+  fusion for 1-qubit gates as long as gates are applied immediately after each
+  other on the same qubit.
 
 - `src/`: Modules for specifying and drawing circuits, modules for giving the
   semantics for circuits, modules for executing circuits and for compiling
   circuits into data-parallel Futhark code.
 
-- `examples/`: Example quantum algorithms.
+- `examples/`: Example quantum algorithms. Currently, only Grover's algorithm is
+  available...
 
 ## Dependencies
 
