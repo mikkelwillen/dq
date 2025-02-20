@@ -138,12 +138,15 @@ module gates : gates with c = complex.complex = {
                           (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
+  -- Non-scatter optimal version - however, the copy is very bad if c is large
+  -- I would like map to support that if p is unique then the updates can be
+  -- implemented in-place...
   def gate1C_newinternalbug [n] (c:i64) (q:q) (g:gate1) (v: *st[n]) : *st[n] =
     let v = v :> *[(2**q*2**(c+1))*2**(n-q-c-1)]c
     let f u = flatten(map (\p ->
                              let i = 2**(c+1)-2
                              let (x,y) = g p[i] p[i+1]
-                             in copy p with [i] = x with [i+1] = y)
+                             in p with [i] = x with [i+1] = y)
                           (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
