@@ -129,24 +129,35 @@ module gates : gates with c = complex.complex = {
     let f u = flatten(map g (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
+  -- Non-scatter optimal version - however, the copy is very bad if c is large
+  -- I would like map to support that if p is unique then the updates can be
+  -- implemented in-place...
+  --
+  -- Here Futhark suffers from the rule that "A function that consumes one of
+  -- its arguments may not be passed as a higher-order argument to another
+  -- function..."
+
   def gate1C_new [n] (c:i64) (q:q) (g:gate1) (v: *st[n]) : *st[n] =
     let v = v :> *[(2**q*2**(c+1))*2**(n-q-c-1)]c
     let f u = flatten(map (\(p:[2**(c+1)]c) ->
                              let i = 2**(c+1)-2
                              let (x,y) = g p[i] p[i+1]
-                             in copy p with [i] = x with [i+1] = y)
+                             in copy p with [i] = x
+				       with [i+1] = y)
                           (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
-  -- Non-scatter optimal version - however, the copy is very bad if c is large
-  -- I would like map to support that if p is unique then the updates can be
-  -- implemented in-place...
+  -- The following version is the same as the above - but it results in a buggy
+  -- execution if the function is used as a replacement of gate1C. Executing
+  -- "futhark test qsim_test.fut" issues errors whereas "futhark test -i
+  -- qsim_test.fut" does not.
+
   def gate1C_newinternalbug [n] (c:i64) (q:q) (g:gate1) (v: *st[n]) : *st[n] =
     let v = v :> *[(2**q*2**(c+1))*2**(n-q-c-1)]c
-    let f u = flatten(map (\p ->
-                             let i = 2**(c+1)-2
-                             let (x,y) = g p[i] p[i+1]
-                             in p with [i] = x with [i+1] = y)
+    let f u = flatten(map (\p -> let i = 2**(c+1)-2
+				 let (x,y) = g p[i] p[i+1]
+				 in copy p with [i] = x
+					   with [i+1] = y)
                           (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
