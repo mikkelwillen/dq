@@ -4,14 +4,14 @@ module type gates = {
   type c              -- type of complex numbers
   type q = i64        -- qubit index
 
-  type^ gate1snd = c -> c                                      -- C -> C; gate on the form [[1,0],[0,a]]
-  type^ gate1 = c -> c -> (c,c)                                -- C^2 -> C^2
+  type^ gate_snd = c -> c                                      -- C -> C; gate on the form [[1,0],[0,a]]
+  type^ gate = c -> c -> (c,c)                                 -- C^2 -> C^2
   type^ gate2 = c -> c -> c -> c -> (c,c,c,c)                  -- C^4 -> C^4
 
   type st[n] = [2**n]c
 
-  val gate1sndC [n] : (m:i64) -> q -> gate1snd -> *st[n] -> *st[n]  -- S, ...
-  val gate1C    [n] : (m:i64) -> q -> gate1 -> *st[n] -> *st[n]     -- X, H, ...
+  val gate_sndC [n] : (m:i64) -> q -> gate_snd -> *st[n] -> *st[n]  -- S, ...
+  val gateC     [n] : (m:i64) -> q -> gate -> *st[n] -> *st[n]      -- X, H, ...
   val gate2     [n] : q -> gate2 -> *st[n] -> *st[n]                -- e.g., swap
 
   val gateX   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
@@ -19,14 +19,17 @@ module type gates = {
   val gateZ   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
   val gateH   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
   val gateT   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
+  val gateR   [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
 
   val cntrlX  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlY  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlZ  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlH  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlT  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
+  val cntrlR  [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
 
   val swap    [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n - 1
+  val swap2   [n] : (q:q) -> (r:q) -> *st[n] -> *st[n]         -- 0 <= q < n - 1, q < r < n
 
   type ket[n] = [n]i64
   val fromKet [n] : ket[n] -> *st[n]
@@ -50,8 +53,8 @@ module gates : gates with c = complex.complex = {
   type c = complex.complex
   type q = i64
 
-  type^ gate1snd = c -> c
-  type^ gate1 = c -> c -> (c,c)
+  type^ gate_snd = c -> c
+  type^ gate = c -> c -> (c,c)
   type^ gate2 = c -> c -> c -> c -> (c,c,c,c)
 
   type st[n] = [2**n]c
@@ -67,10 +70,11 @@ module gates : gates with c = complex.complex = {
   def Z a b = complex.((a, neg b))
   def H a b = complex.((a*rsqrt2+b*rsqrt2, a*rsqrt2-b*rsqrt2))
   def T a b = complex.((a, b*eipi4))
+  def R phi a b = complex.((a, b*exp(mk_im phi)))
 
   def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
 
-  def gate1old [n] (q:q) (g:gate1) (v: *st[n]) : *st[n] =
+  def gate_old [n] (q:q) (g:gate) (v: *st[n]) : *st[n] =
     let d = dst n q
     let v = v :> *[(2**q*2)*d]c
     let v : *[2**q][2][d]c = unflatten (unflatten v)
@@ -86,18 +90,18 @@ module gates : gates with c = complex.complex = {
   def unvec 'a [m][n] (x:*[m*n]a) : *[n][m]a =
     transpose(unflatten x)
 
-  def gate1 [n] (q:q) (g:gate1) (v: *st[n]) : *st[n] =
+  def gate [n] (q:q) (g:gate) (v: *st[n]) : *st[n] =
     let v = v :> *[(2**q*2)*2**(n-q-1)]c
     let f u = flatten(map (\p -> let (x,y) = g p[0] p[1]
                                  in [x,y]) (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
-  def gate1snd [n] (q:q) (g:gate1snd) (v: *st[n]) : *st[n] = -- e.g., for Z
+  def gate_snd [n] (q:q) (g:gate_snd) (v: *st[n]) : *st[n] = -- e.g., for Z
     let v = v :> *[(2**q*2)*2**(n-q-1)]c
     let f u = flatten(map (\p -> [p[0],g p[1]]) (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
-  def gate1C [n] (c:i64) (q:q) (g:gate1) (v: *st[n]) : *st[n] =
+  def gateC [n] (c:i64) (q:q) (g:gate) (v: *st[n]) : *st[n] =
     let d = dst n (q+c)
     let xs = map (\i -> map (\j -> 2*d*((i+1) * 2**c - 1) + j) (iota d)
                  ) (iota (2**q)) |> flatten
@@ -105,7 +109,7 @@ module gates : gates with c = complex.complex = {
     let ccs = map2 (\x y -> g v[x] v[y]) xs ys
     in scatter v (xs++ys) (map (.0) ccs ++ map (.1) ccs)
 
-  def gate1sndC [n] (c:i64) (q:q) (g:gate1snd) (v: *st[n]) : *st[n] =
+  def gate_sndC [n] (c:i64) (q:q) (g:gate_snd) (v: *st[n]) : *st[n] =
     let d = dst n (q+c)
     let xs = map (\i -> map (\j -> 2*d*((i+1) * 2**c - 1) + j + d) (iota d)
                  ) (iota (2**q)) |> flatten
@@ -113,21 +117,58 @@ module gates : gates with c = complex.complex = {
     in scatter v xs ccs
 
   def gate2 [n] (q:q) (g:gate2) (v: *st[n]) : *st[n] =
-    let d = dst n (q+1)
-    let xs = map (\i -> map (\j -> 4*d*i+j) (iota d)
-                 ) (iota (2**q)) |> flatten
-    let ys = map (\x -> (x+d,x+d+d,x+d+d+d)) xs
-    let ccs = map2 (\x y -> g v[x] v[y.0] v[y.1] v[y.2]) xs ys
-    in scatter v (xs++map(.0)ys++map(.1)ys++map(.2)ys)
-               (map(.0)ccs++map(.1)ccs++map(.2)ccs++map(.3)ccs)
+    let v = v :> *[(2**q*4)*2**(n-q-2)]c
+    let f u = flatten(map (\p -> let (a,b,c,d) = g p[0] p[1] p[2] p[3]
+                                 in [a,b,c,d]) (unflatten u))
+    in vec(map f (unvec v)) :> *st[n]
+
+  -- def gate2 [n] (q:q) (g:gate2) (v: *st[n]) : *st[n] =
+  --   let d = dst n (q+1)
+  --   let xs = map (\i -> map (\j -> 4*d*i+j) (iota d)
+  --                ) (iota (2**q)) |> flatten
+  --   let ys = map (\x -> (x+d,x+d+d,x+d+d+d)) xs
+  --   let ccs = map2 (\x y -> g v[x] v[y.0] v[y.1] v[y.2]) xs ys
+  --   in scatter v (xs++map(.0)ys++map(.1)ys++map(.2)ys)
+  --              (map(.0)ccs++map(.1)ccs++map(.2)ccs++map(.3)ccs)
 
   def swap [n] (q:q) (v: *st[n]) : *st[n] =
-    let v = v :> *[(2**q*4)*2**(n-q-2)]c
-    let g p = let x = p[1]
-              in copy p with [2] = x
-                        with [1] = p[2]
-    let f u = flatten(map g (unflatten u))
-    in vec(map f (unvec v)) :> *st[n]
+    gate2 q (\a b c d -> (a,c,b,d)) v
+
+  -- def swap [n] (q:q) (v: *st[n]) : *st[n] =
+  --   let v = v :> *[(2**q*4)*2**(n-q-2)]c
+  --   let g p = let x = p[1]
+  --             in copy p with [2] = x
+  --                       with [1] = p[2]
+  --   let f u = flatten(map g (unflatten u))
+  --   in vec(map f (unvec v)) :> *st[n]
+
+  def mymap 'a 'b [n] (f : *a -> *b) (v:*[n]a) : *[n]b =
+    map (\u : *b -> f (copy u)) v
+
+  def up [k] (q:q) (r:q) (v:*st[k]) : *st[k] =         -- 0 <= q < n - 1, q < r < n
+    let n = r-q
+    let v = v :> *[2**(r+1)*2**(k-r-1)]c
+    let up (u : *[2**(n+1)]c) : *[2**n*2]c =
+      let u = u :> *[2*2**n]c
+      in flatten(unvec u)
+    let f (u : *[2**(r+1)]c) : *[2**q*(2**n*2)]c =
+      let u = u :> *[2**q*2**(n+1)]c
+      in flatten(mymap up (unflatten u))
+    in vec(mymap f (unvec v)) :> *st[k]
+
+  def down [k] (q:q) (r:q) (v:*st[k]) : *st[k] =         -- 0 <= q < n - 1, q < r < n
+    let n = r-q
+    let v = v :> *[2**(r+1)*2**(k-r-1)]c
+    let dn (u : *[2**(n+1)]c) : *[2*2**n]c =
+      let u = u :> *[2**n*2]c
+      in flatten(unvec u)
+    let f (u : *[2**(r+1)]c) : *[2**q*(2*2**n)]c =
+      let u = u :> *[2**q*2**(n+1)]c
+      in flatten(mymap dn (unflatten u))
+    in vec(mymap f (unvec v)) :> *st[k]
+
+  def swap2 [k] (q:q) (r:q) (v:*st[k]) : *st[k] =
+    down q r (up q (r-1) v)
 
   -- Non-scatter optimal version - however, the copy is very bad if c is large
   -- I would like map to support that if p is unique then the updates can be
@@ -137,7 +178,7 @@ module gates : gates with c = complex.complex = {
   -- its arguments may not be passed as a higher-order argument to another
   -- function..."
 
-  def gate1C_new [n] (c:i64) (q:q) (g:gate1) (v: *st[n]) : *st[n] =
+  def gateC_new [n] (c:i64) (q:q) (g:gate) (v: *st[n]) : *st[n] =
     let v = v :> *[(2**q*2**(c+1))*2**(n-q-c-1)]c
     let f u = flatten(map (\(p:[2**(c+1)]c) ->
                              let i = 2**(c+1)-2
@@ -147,12 +188,24 @@ module gates : gates with c = complex.complex = {
                           (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
+  def gateC_new' [n] (c:i64) (q:q) (g:gate) (v: *st[n]) : *st[n] =
+    let v = v :> *[(2**q*2**(c+1))*2**(n-q-c-1)]c
+    let f (u : [2**q*2**(c+1)]c) =
+      let u2 : [2**q][2**(c+1)]c = unflatten (copy u)
+      let p2 : [2**q][2]c = map (\p -> let i = 2**(c+1)-2
+				       let (x,y) = g p[i] p[i+1]
+				       in [x,y])
+				u2
+      let u2[:,:-2] = p2
+      in flatten u2
+    in vec(map f (unvec v)) :> *st[n]
+
   -- The following version is the same as the above - but it results in a buggy
-  -- execution if the function is used as a replacement of gate1C. Executing
+  -- execution if the function is used as a replacement of gateC. Executing
   -- "futhark test qsim_test.fut" issues errors whereas "futhark test -i
   -- qsim_test.fut" does not.
 
-  def gate1C_newinternalbug [n] (c:i64) (q:q) (g:gate1) (v: *st[n]) : *st[n] =
+  def gateC_newinternalbug [n] (c:i64) (q:q) (g:gate) (v: *st[n]) : *st[n] =
     let v = v :> *[(2**q*2**(c+1))*2**(n-q-c-1)]c
     let f u = flatten(map (\p -> let i = 2**(c+1)-2
 				 let (x,y) = g p[i] p[i+1]
@@ -162,34 +215,40 @@ module gates : gates with c = complex.complex = {
     in vec(map f (unvec v)) :> *st[n]
 
   def cntrlX [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
-    gate1C m q X v
+    gateC m q X v
 
   def cntrlY [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
-    gate1C m q Y v
+    gateC m q Y v
 
   def cntrlZ [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
-    gate1C m q Z v
+    gateC m q Z v
 
   def cntrlH [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
-    gate1C m q H v
+    gateC m q H v
 
   def cntrlT [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
-    gate1C m q T v
+    gateC m q T v
+
+  def cntrlR [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q (R p) v
 
   def gateX [n] (q:q) (v: *st[n]) : *st[n] =
-    gate1 q X v
+    gate q X v
 
   def gateY [n] (q:q) (v: *st[n]) : *st[n] =
-    gate1 q Y v
+    gate q Y v
 
   def gateZ [n] (q:q) (v: *st[n]) : *st[n] =
-    gate1snd q (complex.neg) v
+    gate_snd q (complex.neg) v
 
   def gateH [n] (q:q) (v: *st[n]) : *st[n] =
-    gate1 q H v
+    gate q H v
 
   def gateT [n] (q:q) (v: *st[n]) : *st[n] =
-    gate1snd q (\c -> complex.(c*eipi4)) v
+    gate_snd q (\c -> complex.(c*eipi4)) v
+
+  def gateR [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gate_snd q (\c -> complex.(c*exp(mk_im p))) v
 
   type ket [n] = [n]i64
 

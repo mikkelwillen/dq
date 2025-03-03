@@ -1,4 +1,6 @@
--- Data-parallel simulation of Grover's algorithm in Futhark
+-- Quantum benchmark: Grover
+-- Desc: Data-parallel simulation of Grover's algorithm in Futhark
+-- Spec: main(n): For a number of qubits n > 4, search for the value 12.
 
 import "qsim"
 
@@ -43,7 +45,25 @@ entry test_grover n i = (grover n i).0
 
 -- ==
 -- entry: test_grover
--- input { 8i64 12i64 }
+-- nobench input { 8i64 12i64 }
 -- output { [0i64, 0i64, 0i64, 0i64, 1i64, 1i64, 0i64, 0i64] }
--- input { 9i64 13i64 }
+-- nobench input { 9i64 13i64 }
 -- output { [0i64, 0i64, 0i64, 0i64, 0i64, 1i64, 1i64, 0i64, 1i64] }
+
+entry bench_grover n =
+  let v = (grover n 12).0
+  in (reverse v)[0:5] == [0,0,1,1,0]
+
+-- ==
+-- entry: bench_grover
+-- input { 5i64 } output { true }
+-- input { 6i64 } output { true }
+-- input { 7i64 } output { true }
+-- disable input { 8i64 } output { true }
+-- disable input { 9i64 } output { true }
+-- disable input { 10i64 } output { true }
+-- disable input { 11i64 } output { true }
+-- disable input { 12i64 } output { true }
+-- disable input { 13i64 } output { true }
+-- disable input { 14i64 } output { true }
+-- disable input { 15i64 } output { true }

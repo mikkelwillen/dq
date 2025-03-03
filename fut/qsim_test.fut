@@ -125,3 +125,31 @@ entry test_gate1_ids (n:i64) (q:i64) : bool =
 -- output { true }
 -- input { 3i64 1i64 }
 -- output { true }
+
+entry test_swap2 [n] (q:i64) (r:i64) (k:[n]i64) : [n]i64 =
+  test_circuit (swap2 q r) k
+
+-- ==
+-- entry: test_swap2
+-- input { 0i64 1i64 [0i64,0i64] }
+-- output { [0i64,0i64] }
+-- input { 0i64 1i64 [0i64,1i64] }
+-- output { [1i64,0i64] }
+-- input { 0i64 1i64 [1i64,0i64] }
+-- output { [0i64,1i64] }
+-- input { 0i64 1i64 [0i64,1i64,1i64] }
+-- output { [1i64,0i64,1i64] }
+-- input { 1i64 2i64 [0i64,0i64,1i64] }
+-- output { [0i64,1i64,0i64] }
+-- input { 1i64 2i64 [1i64,0i64,1i64] }
+-- output { [1i64,1i64,0i64] }
+-- input { 2i64 3i64 [1i64,0i64,1i64,0i64,0i64] }
+-- output {          [1i64,0i64,0i64,1i64,0i64] }
+-- input { 1i64 2i64 [1i64,0i64,1i64,0i64,0i64] }
+-- output {          [1i64,1i64,0i64,0i64,0i64] }
+-- input { 0i64 3i64 [1i64,0i64,1i64,0i64,0i64] }
+-- output {          [0i64,0i64,1i64,1i64,0i64] }
+-- input { 1i64 3i64 [1i64,0i64,1i64,0i64,0i64] }
+-- output {          [1i64,0i64,1i64,0i64,0i64] }
+-- input { 2i64 4i64 [1i64,0i64,1i64,0i64,0i64] }
+-- output {          [1i64,0i64,0i64,0i64,1i64] }
