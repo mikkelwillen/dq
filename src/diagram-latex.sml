@@ -51,7 +51,7 @@ structure DiagramLatex :> DIAGRAM = struct
   fun put_cross (x,y) a =
       let val l = dx div 5
           val h = l div 2
-      in put (x-h,y-h) (makebox(l,l) "$\\times$") :: a
+      in put (x-h,y-h) (makebox(l,l) "{\\tiny $\\times$}") :: a
       end
 
   fun put_swap (x,y) a =
