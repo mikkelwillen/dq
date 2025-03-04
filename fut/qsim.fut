@@ -142,33 +142,33 @@ module gates : gates with c = complex.complex = {
   --   let f u = flatten(map g (unflatten u))
   --   in vec(map f (unvec v)) :> *st[n]
 
-  def mymap 'a 'b [n] (f : *a -> *b) (v:*[n]a) : *[n]b =
+  def umap 'a 'b [n] (f : *a -> *b) (v:*[n]a) : *[n]b =
     map (\u : *b -> f (copy u)) v
 
   def up [k] (q:q) (r:q) (v:*st[k]) : *st[k] =         -- 0 <= q < n - 1, q < r < n
     let n = r-q
     let v = v :> *[2**(r+1)*2**(k-r-1)]c
-    let up (u : *[2**(n+1)]c) : *[2**n*2]c =
-      let u = u :> *[2*2**n]c
-      in flatten(unvec u)
-    let f (u : *[2**(r+1)]c) : *[2**q*(2**n*2)]c =
-      let u = u :> *[2**q*2**(n+1)]c
-      in flatten(mymap up (unflatten u))
-    in vec(mymap f (unvec v)) :> *st[k]
-
-  def down [k] (q:q) (r:q) (v:*st[k]) : *st[k] =         -- 0 <= q < n - 1, q < r < n
-    let n = r-q
-    let v = v :> *[2**(r+1)*2**(k-r-1)]c
-    let dn (u : *[2**(n+1)]c) : *[2*2**n]c =
+    let up (u : *[2**(n+1)]c) : *[2*2**n]c =
       let u = u :> *[2**n*2]c
       in flatten(unvec u)
     let f (u : *[2**(r+1)]c) : *[2**q*(2*2**n)]c =
       let u = u :> *[2**q*2**(n+1)]c
-      in flatten(mymap dn (unflatten u))
-    in vec(mymap f (unvec v)) :> *st[k]
+      in flatten(umap up (unflatten u))
+    in vec(umap f (unvec v)) :> *st[k]
+
+  def down [k] (q:q) (r:q) (v:*st[k]) : *st[k] =         -- 0 <= q < n - 1, q < r < n
+    let n = r-q
+    let v = v :> *[2**(r+1)*2**(k-r-1)]c
+    let dn (u : *[2**(n+1)]c) : *[2**n*2]c =
+      let u = u :> *[2*2**n]c
+      in flatten(unvec u)
+    let f (u : *[2**(r+1)]c) : *[2**q*(2**n*2)]c =
+      let u = u :> *[2**q*2**(n+1)]c
+      in flatten(umap dn (unflatten u))
+    in vec(umap f (unvec v)) :> *st[k]
 
   def swap2 [k] (q:q) (r:q) (v:*st[k]) : *st[k] =
-    down q r (up q (r-1) v)
+    down (q+1) r (up q r v)
 
   -- Non-scatter optimal version - however, the copy is very bad if c is large
   -- I would like map to support that if p is unique then the updates can be
