@@ -101,19 +101,11 @@ module gates : gates with c = complex.complex = {
     let sinp2 = complex.mk_re (f64.sin p2)
     in complex.((a*cosp2 - b*sinp2, b*cosp2 + a*sinp2))
 
-  def Rz p a b = complex.((a*enipi2,b*eipi2))
-
-  def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
-
-  def gate_old [n] (q:q) (g:gate) (v: *st[n]) : *st[n] =
-    let d = dst n q
-    let v = v :> *[(2**q*2)*d]c
-    let v : *[2**q][2][d]c = unflatten (unflatten v)
-    let v : *[2**q][d][2]c = map transpose v
-    let v = map (map (\p -> let (x,y) = g p[0] p[1]
-                            in [x,y])) v
-    let v = map transpose v
-    in flatten (flatten v) :> *st[n]
+  def Rz p a b =
+    let p2 = p / 2
+    let np2 = p / -2
+    in complex.((a*exp(mk_im np2),
+		 b*exp(mk_im p2)))
 
   def vec 'a [m][n] (x:*[m][n]a) : *[n*m]a =
     flatten(transpose x)
@@ -122,15 +114,19 @@ module gates : gates with c = complex.complex = {
     transpose(unflatten x)
 
   def gate [n] (q:q) (g:gate) (v: *st[n]) : *st[n] =
-    let v = v :> *[(2**q*2)*2**(n-q-1)]c
-    let f u = flatten(map (\p -> let (x,y) = g p[0] p[1]
-                                 in [x,y]) (unflatten u))
-    in vec(map f (unvec v)) :> *st[n]
+    assert (0 <= q && q < n)
+    (let v = v :> *[(2**q*2)*2**(n-q-1)]c
+     let f u = flatten(map (\p -> let (x,y) = g p[0] p[1]
+                                  in [x,y]) (unflatten u))
+     in vec(map f (unvec v)) :> *st[n])
 
   def gate_snd [n] (q:q) (g:gate_snd) (v: *st[n]) : *st[n] = -- e.g., for Z
-    let v = v :> *[(2**q*2)*2**(n-q-1)]c
-    let f u = flatten(map (\p -> [p[0],g p[1]]) (unflatten u))
-    in vec(map f (unvec v)) :> *st[n]
+    assert (0 <= q && q < n)
+    (let v = v :> *[(2**q*2)*2**(n-q-1)]c
+     let f u = flatten(map (\p -> [p[0],g p[1]]) (unflatten u))
+     in vec(map f (unvec v)) :> *st[n])
+
+  def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
 
   def gateC [n] (c:i64) (q:q) (g:gate) (v: *st[n]) : *st[n] =
     let d = dst n (q+c)
@@ -148,10 +144,11 @@ module gates : gates with c = complex.complex = {
     in scatter v xs ccs
 
   def gate2 [n] (q:q) (g:gate2) (v: *st[n]) : *st[n] =
-    let v = v :> *[(2**q*4)*2**(n-q-2)]c
-    let f u = flatten(map (\p -> let (a,b,c,d) = g p[0] p[1] p[2] p[3]
-                                 in [a,b,c,d]) (unflatten u))
-    in vec(map f (unvec v)) :> *st[n]
+    assert (0 <= q && q < n-1)
+    (let v = v :> *[(2**q*4)*2**(n-q-2)]c
+     let f u = flatten(map (\p -> let (a,b,c,d) = g p[0] p[1] p[2] p[3]
+                                  in [a,b,c,d]) (unflatten u))
+     in vec(map f (unvec v)) :> *st[n])
 
   -- def gate2 [n] (q:q) (g:gate2) (v: *st[n]) : *st[n] =
   --   let d = dst n (q+1)
@@ -199,7 +196,8 @@ module gates : gates with c = complex.complex = {
     in vec(umap f (unvec v)) :> *st[k]
 
   def swap2 [k] (q:q) (r:q) (v:*st[k]) : *st[k] =
-    down (q+1) r (up q r v)
+    assert (r > q && 0 <= q && q < k && 0 < r && r < k)
+	   (down (q+1) r (up q r v))
 
   -- Non-scatter optimal version - however, the copy is very bad if c is large
   -- I would like map to support that if p is unique then the updates can be
