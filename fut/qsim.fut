@@ -19,14 +19,24 @@ module type gates = {
   val gateZ   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
   val gateH   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
   val gateT   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
+  val gateS   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
+  val gateSd  [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
   val gateR   [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
+  val gateRx  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
+  val gateRy  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
+  val gateRz  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
 
   val cntrlX  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlY  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlZ  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlH  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlT  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
+  val cntrlS  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
+  val cntrlSd [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlR  [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
+  val cntrlRx [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
+  val cntrlRy [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
+  val cntrlRz [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
 
   val swap    [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n - 1
   val swap2   [n] : (q:q) -> (r:q) -> *st[n] -> *st[n]         -- 0 <= q < n - 1, q < r < n
@@ -64,13 +74,34 @@ module gates : gates with c = complex.complex = {
   def rsqrt2 = complex.mk_re (1.0 / f64.sqrt 2.0)
   def ipi4 = complex.mk_im (f64.pi / 4)
   def eipi4 = complex.(exp ipi4)
+  def ipi2 = complex.mk_im (f64.pi / 2)
+  def nipi2 = complex.mk_im (f64.pi / -2)
+  def eipi2 = complex.(exp ipi2)
+  def enipi2 = complex.(exp nipi2)
 
   def X a b = (b, a)
   def Y a b = complex.((ni*b, i*a))
   def Z a b = complex.((a, neg b))
   def H a b = complex.((a*rsqrt2+b*rsqrt2, a*rsqrt2-b*rsqrt2))
   def T a b = complex.((a, b*eipi4))
-  def R phi a b = complex.((a, b*exp(mk_im phi)))
+  def S a b = complex.((a, b*i))
+  def Sd a b = complex.((a, b*ni))
+
+  def R p a b = complex.((a, b*exp(mk_im p)))
+
+  def Rx p a b =
+    let p2 = p / 2
+    let cosp2 = complex.mk_re (f64.cos p2)
+    let isinp2 = complex.(ni * mk_re(f64.sin p2))
+    in complex.((a*cosp2 - b*isinp2, b*cosp2 - a*isinp2))
+
+  def Ry p a b =
+    let p2 = p / 2
+    let cosp2 = complex.mk_re (f64.cos p2)
+    let sinp2 = complex.mk_re (f64.sin p2)
+    in complex.((a*cosp2 - b*sinp2, b*cosp2 + a*sinp2))
+
+  def Rz p a b = complex.((a*enipi2,b*eipi2))
 
   def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
 
@@ -184,7 +215,7 @@ module gates : gates with c = complex.complex = {
                              let i = 2**(c+1)-2
                              let (x,y) = g p[i] p[i+1]
                              in copy p with [i] = x
-				       with [i+1] = y)
+                                       with [i+1] = y)
                           (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
@@ -193,9 +224,9 @@ module gates : gates with c = complex.complex = {
     let f (u : [2**q*2**(c+1)]c) =
       let u2 : [2**q][2**(c+1)]c = unflatten (copy u)
       let p2 : [2**q][2]c = map (\p -> let i = 2**(c+1)-2
-				       let (x,y) = g p[i] p[i+1]
-				       in [x,y])
-				u2
+                                       let (x,y) = g p[i] p[i+1]
+                                       in [x,y])
+                                u2
       let u2[:,:-2] = p2
       in flatten u2
     in vec(map f (unvec v)) :> *st[n]
@@ -208,9 +239,9 @@ module gates : gates with c = complex.complex = {
   def gateC_newinternalbug [n] (c:i64) (q:q) (g:gate) (v: *st[n]) : *st[n] =
     let v = v :> *[(2**q*2**(c+1))*2**(n-q-c-1)]c
     let f u = flatten(map (\p -> let i = 2**(c+1)-2
-				 let (x,y) = g p[i] p[i+1]
-				 in copy p with [i] = x
-					   with [i+1] = y)
+                                 let (x,y) = g p[i] p[i+1]
+                                 in copy p with [i] = x
+                                           with [i+1] = y)
                           (unflatten u))
     in vec(map f (unvec v)) :> *st[n]
 
@@ -229,8 +260,23 @@ module gates : gates with c = complex.complex = {
   def cntrlT [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
     gateC m q T v
 
+  def cntrlS [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q S v
+
+  def cntrlSd [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q Sd v
+
   def cntrlR [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
     gateC m q (R p) v
+
+  def cntrlRx [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q (Rx p) v
+
+  def cntrlRy [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q (Ry p) v
+
+  def cntrlRz [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q (Rz p) v
 
   def gateX [n] (q:q) (v: *st[n]) : *st[n] =
     gate q X v
@@ -247,8 +293,23 @@ module gates : gates with c = complex.complex = {
   def gateT [n] (q:q) (v: *st[n]) : *st[n] =
     gate_snd q (\c -> complex.(c*eipi4)) v
 
+  def gateS [n] (q:q) (v: *st[n]) : *st[n] =
+    gate_snd q (\c -> complex.(c*i)) v
+
+  def gateSd [n] (q:q) (v: *st[n]) : *st[n] =
+    gate_snd q (\c -> complex.(c*ni)) v
+
   def gateR [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
     gate_snd q (\c -> complex.(c*exp(mk_im p))) v
+
+  def gateRx [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gate q (Rx p) v
+
+  def gateRy [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gate q (Ry p) v
+
+  def gateRz [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+    gate q (Rz p) v
 
   type ket [n] = [n]i64
 
