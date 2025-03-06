@@ -4,11 +4,11 @@ lib:
 
 .PHONY: test
 test: lib
-	futhark test qsim_test.fut ex1.fut grover.fut ghz.fut
+	futhark test dqfut_test.fut ex1.fut grover.fut ghz.fut
 
 .PHONY: clean
 clean:
-	rm -rf *.expected *.actual *~ *.c ex1 qsim_test grover ghz
+	rm -rf *.expected *.actual *~ *.c ex1 dqfut_test grover ghz *.multicore.data
 
 .PHONY: realclean
 realclean: clean

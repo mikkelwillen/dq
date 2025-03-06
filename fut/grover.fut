@@ -2,7 +2,7 @@
 -- Desc: Data-parallel simulation of Grover's algorithm in Futhark
 -- Spec: main(n): For a number of qubits n > 4, search for the value 12.
 
-import "qsim"
+import "dqfut"
 
 open gates
 

@@ -3,7 +3,8 @@
 -- Spec: main(n): For a number of qubits perform an extangled state
 --       between zero-state and 1-state.
 -- Origin: Ported from Supermarq
-import "qsim"
+
+import "dqfut"
 
 open gates
 

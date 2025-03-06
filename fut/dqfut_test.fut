@@ -1,4 +1,4 @@
-import "qsim"
+import "dqfut"
 
 open gates
 

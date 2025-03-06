@@ -12,7 +12,9 @@
 --                                       '---'
 -- Futhark simulation function for c:
 --
-import "qsim"
+
+import "dqfut"
+
 open gates
 
 def sim (v:*st[3]) : *st[3] =
