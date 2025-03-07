@@ -1,4 +1,4 @@
-MLCOMP ?= mlton
+MLCOMP ?= mlkit
 
 .PHONY: test
 test: test_diagram.res test_circuit.res test_semantics.res

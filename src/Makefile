@@ -1,5 +1,5 @@
 
-MLCOMP ?= mlton
+MLCOMP ?= mlkit
 
 SMLFILES=*.sml *.sig
 .PHONY: all

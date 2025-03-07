@@ -53,6 +53,7 @@ module type gates = {
   -- Some utility functions
   val <*<      'a : (q -> *a -> *a) -> (q -> *a -> *a) -> (q -> *a -> *a)
   val >*>      'a : (q -> *a -> *a) -> (q -> *a -> *a) -> (q -> *a -> *a)
+  val |*>   'a 'b : *a -> (*a -> *b) -> *b
   val repeat   'a : i64 -> (i64 -> *a -> *a) -> *a -> *a
 }
 
@@ -113,42 +114,63 @@ module gates : gates with c = complex.complex = {
   def unvec 'a [m][n] (x:*[m*n]a) : *[n][m]a =
     transpose(unflatten x)
 
-  def gate [n] (q:q) (g:gate) (v: *st[n]) : *st[n] =
-    assert (0 <= q && q < n)
-    (let v = v :> *[(2**q*2)*2**(n-q-1)]c
-     let f u = flatten(map (\p -> let (x,y) = g p[0] p[1]
-                                  in [x,y]) (unflatten u))
-     in vec(map f (unvec v)) :> *st[n])
+  def umap 'a 'b [n] (f : *a -> *b) (v:*[n]a) : *[n]b =
+    map (\u : *b -> f (copy u)) v
 
-  def gate_snd [n] (q:q) (g:gate_snd) (v: *st[n]) : *st[n] = -- e.g., for Z
-    assert (0 <= q && q < n)
-    (let v = v :> *[(2**q*2)*2**(n-q-1)]c
-     let f u = flatten(map (\p -> [p[0],g p[1]]) (unflatten u))
-     in vec(map f (unvec v)) :> *st[n])
+  -- this version is currently problematic - using futhark test -i works, however
+  -- Fixed after Futhark 0.25.27
+  def gate_vecn [k] (n:i64) (q:q) (g:[2**n]c -> [2**n]c) (v: *st[k]) : *st[k] =
+    assert (0 <= q && q < k-n+1)
+    (let v = v :> *[(2**q*2**n)*2**(k-q-n)]c
+     let f u = flatten(map g (unflatten u))
+     in vec(map f (unvec v)) :> *st[k])
+
+  def gate_vec [k] (q:q) (g:*[2]c -> *[2]c) (v: *st[k]) : *st[k] =
+    assert (0 <= q && q < k)
+    (let v = v :> *[(2**q*2)*2**(k-q-1)]c
+     let f (u:*[2**q*2]c) : *[2**q*2]c = flatten(umap g (unflatten u))
+     in vec(umap f (unvec v)) :> *st[k])
+
+--  def gate_vec [k] (q:q) (g:[2]c -> [2]c) (v: *st[k]) : *st[k] =
+--    gate_vecn 1 q (g :> [2**1]c -> [2**1]c) v
+
+  def gate [k] (q:q) (g:gate) (v: *st[k]) : *st[k] =
+    let g p : *[2]c = let p = p :> *[2]c
+		      let (x,y) = g p[0] p[1]
+		      in [x,y] :> *[2]c
+    in gate_vec q g v
+
+  def gate_snd [k] (q:q) (g:gate_snd) (v: *st[k]) : *st[k] = -- e.g., for Z
+    gate_vec q (\p : *[2]c -> [p[0],g p[1]]) v
 
   def dst (n:i64) (q:i64) : i64 = 2**(n-q-1)
 
-  def gateC [n] (c:i64) (q:q) (g:gate) (v: *st[n]) : *st[n] =
-    let d = dst n (q+c)
+  def gateC [k] (c:i64) (q:q) (g:gate) (v: *st[k]) : *st[k] =
+    let d = dst k (q+c)
     let xs = map (\i -> map (\j -> 2*d*((i+1) * 2**c - 1) + j) (iota d)
                  ) (iota (2**q)) |> flatten
     let ys = map (\x -> x+d) xs
     let ccs = map2 (\x y -> g v[x] v[y]) xs ys
     in scatter v (xs++ys) (map (.0) ccs ++ map (.1) ccs)
 
-  def gate_sndC [n] (c:i64) (q:q) (g:gate_snd) (v: *st[n]) : *st[n] =
-    let d = dst n (q+c)
+  def gate_sndC [k] (c:i64) (q:q) (g:gate_snd) (v: *st[k]) : *st[k] =
+    let d = dst k (q+c)
     let xs = map (\i -> map (\j -> 2*d*((i+1) * 2**c - 1) + j + d) (iota d)
                  ) (iota (2**q)) |> flatten
     let ccs = map (\x -> g v[x]) xs
     in scatter v xs ccs
 
-  def gate2 [n] (q:q) (g:gate2) (v: *st[n]) : *st[n] =
-    assert (0 <= q && q < n-1)
-    (let v = v :> *[(2**q*4)*2**(n-q-2)]c
+  def gate2 [k] (q:q) (g:gate2) (v: *st[k]) : *st[k] =
+--    let g p =
+--      let p = p :> [4]c
+--      let (a,b,c,d) = g p[0] p[1] p[2] p[3]
+--      in [a,b,c,d] :> [2**2]c
+--    in gate_vecn 2 q g v
+    assert (0 <= q && q < k-1)
+    (let v = v :> *[(2**q*4)*2**(k-q-2)]c
      let f u = flatten(map (\p -> let (a,b,c,d) = g p[0] p[1] p[2] p[3]
                                   in [a,b,c,d]) (unflatten u))
-     in vec(map f (unvec v)) :> *st[n])
+     in vec(map f (unvec v)) :> *st[k])
 
   -- def gate2 [n] (q:q) (g:gate2) (v: *st[n]) : *st[n] =
   --   let d = dst n (q+1)
@@ -169,9 +191,6 @@ module gates : gates with c = complex.complex = {
   --                       with [1] = p[2]
   --   let f u = flatten(map g (unflatten u))
   --   in vec(map f (unvec v)) :> *st[n]
-
-  def umap 'a 'b [n] (f : *a -> *b) (v:*[n]a) : *[n]b =
-    map (\u : *b -> f (copy u)) v
 
   def up [k] (q:q) (r:q) (v:*st[k]) : *st[k] =         -- 0 <= q < n - 1, q < r < n
     let n = r-q
@@ -346,4 +365,6 @@ module gates : gates with c = complex.complex = {
 
   def (>*>) 'a (f:q -> *a -> *a) (g:q -> *a -> *a) : q -> *a -> *a =
     \q (v:*a) : *a -> g q (f q v)
+
+  def (|*>) 'a 'b (a:*a) (f:*a -> *b) : *b = f a
 }
