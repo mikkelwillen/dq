@@ -117,8 +117,8 @@ module gates : gates with c = complex.complex = {
   def umap 'a 'b [n] (f : *a -> *b) (v:*[n]a) : *[n]b =
     map (\u : *b -> f (copy u)) v
 
-  -- this version is currently problematic - using futhark test -i works, however
-  -- Fixed after Futhark 0.25.27
+  -- this version is currently problematic - using futhark test -i works, also with
+  -- Futhark 0.25.28
   def gate_vecn [k] (n:i64) (q:q) (g:[2**n]c -> [2**n]c) (v: *st[k]) : *st[k] =
     assert (0 <= q && q < k-n+1)
     (let v = v :> *[(2**q*2**n)*2**(k-q-n)]c
@@ -126,13 +126,15 @@ module gates : gates with c = complex.complex = {
      in vec(map f (unvec v)) :> *st[k])
 
   def gate_vec [k] (q:q) (g:*[2]c -> *[2]c) (v: *st[k]) : *st[k] =
-    assert (0 <= q && q < k)
-    (let v = v :> *[(2**q*2)*2**(k-q-1)]c
-     let f (u:*[2**q*2]c) : *[2**q*2]c = flatten(umap g (unflatten u))
-     in vec(umap f (unvec v)) :> *st[k])
+     assert (0 <= q && q < k)
+     (let v = v :> *[(2**q*2)*2**(k-q-1)]c
+      let f (u:*[2**q*2]c) : *[2**q*2]c = flatten(umap g (unflatten u))
+      in vec(umap f (unvec v)) :> *st[k])
 
---  def gate_vec [k] (q:q) (g:[2]c -> [2]c) (v: *st[k]) : *st[k] =
---    gate_vecn 1 q (g :> [2**1]c -> [2**1]c) v
+-- Replace the above with the below to see the problem with 0.25.28 when
+-- running futhark test dqfut_test.fut
+  --def gate_vec [k] (q:q) (g:[2]c -> [2]c) (v: *st[k]) : *st[k] =
+  --  gate_vecn 1 q (g :> [2**1]c -> [2**1]c) v
 
   def gate [k] (q:q) (g:gate) (v: *st[k]) : *st[k] =
     let g p : *[2]c = let p = p :> *[2]c

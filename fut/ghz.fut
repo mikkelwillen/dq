@@ -11,9 +11,8 @@ open gates
 -- return probabilities of states |0..0> and |1..1>
 def ghz n : (f64, f64) =
   let s = fromKet (replicate n 0)
-  let s = gateH 0 s
-  let s = repeat (n-1)
-		 (\q (s:*st[n]) : *st[n] -> cntrlX 1 q s) s
+          |*> gateH 0
+          |*> repeat (n-1) (cntrlX 1)
   let d = dist s
   in (d[0].1, d[2**n-1].1)
 
