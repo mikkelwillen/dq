@@ -25,6 +25,8 @@ module type gates = {
   val gateRx  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
   val gateRy  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
   val gateRz  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
+  val gateSX  [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
+  val gateSY  [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
 
   val cntrlX  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
   val cntrlY  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
@@ -37,6 +39,8 @@ module type gates = {
   val cntrlRx [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
   val cntrlRy [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
   val cntrlRz [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
+  val cntrlSX [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
+  val cntrlSY [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
 
   val swap    [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n - 1
   val swap2   [n] : (q:q) -> (r:q) -> *st[n] -> *st[n]         -- 0 <= q < n - 1, q < r < n
@@ -79,7 +83,10 @@ module gates : gates with c = complex.complex = {
   def nipi2 = complex.mk_im (f64.pi / -2)
   def eipi2 = complex.(exp ipi2)
   def enipi2 = complex.(exp nipi2)
-
+  def c1 = complex.mk_re 1.0
+  def c1i = complex.(c1+i)
+  def c1ni = complex.(c1-i)
+  def c1ihalf = complex.(c1i / mk_re 2.0)
   def X a b = (b, a)
   def Y a b = complex.((ni*b, i*a))
   def Z a b = complex.((a, neg b))
@@ -107,6 +114,9 @@ module gates : gates with c = complex.complex = {
     let np2 = p / -2
     in complex.((a*exp(mk_im np2),
 		 b*exp(mk_im p2)))
+
+  def SX a b = complex.((c1i*a+c1ni*b, c1ni*a+c1i*b))
+  def SY a b = complex.((c1ihalf*a-c1ihalf*b,c1ihalf*a+c1ihalf*b))
 
   def vec 'a [m][n] (x:*[m][n]a) : *[n*m]a =
     flatten(transpose x)
@@ -297,6 +307,12 @@ module gates : gates with c = complex.complex = {
   def cntrlRz [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
     gateC m q (Rz p) v
 
+  def cntrlSX [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q SX v
+
+  def cntrlSY [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
+    gateC m q SY v
+
   def gateX [n] (q:q) (v: *st[n]) : *st[n] =
     gate q X v
 
@@ -329,6 +345,12 @@ module gates : gates with c = complex.complex = {
 
   def gateRz [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
     gate q (Rz p) v
+
+  def gateSX [n] (q:q) (v: *st[n]) : *st[n] =
+    gate q SX v
+
+  def gateSY [n] (q:q) (v: *st[n]) : *st[n] =
+    gate q SY v
 
   type ket [n] = [n]i64
 

@@ -2,14 +2,18 @@
 MLCOMP ?= mlkit
 
 SMLFILES=*.sml *.sig
+
 .PHONY: all
-all: quantum.exe
+all: quantum.exe qsim2fut
 
 .PHONY: test
 test:
 	$(MAKE) -C test test
 
 %.exe: %.mlb $(SMLFILES)
+	$(MLCOMP) -output $@ $<
+
+qsim2fut: qsim2fut.mlb $(SMLFILES)
 	$(MLCOMP) -output $@ $<
 
 ex1.fut: comp_ex1.exe
@@ -23,5 +27,5 @@ ex1.fut: comp_ex1.exe
 
 .PHONY: clean
 clean:
-	rm -rf *.exe run MLB *~ ex1.fut
+	rm -rf *.exe run MLB *~ ex1.fut qsim2fut
 	$(MAKE) -C test clean

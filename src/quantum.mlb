@@ -1,12 +1,12 @@
 local $(SML_LIB)/basis/basis.mlb
       ../lib/github.com/diku-dk/sml-matrix/matrix.mlb
       ../lib/github.com/diku-dk/sml-complex/complex.mlb
+      futhark.mlb
 in diagram.mlb
    circuit.sig
    circuit.sml
    semantics.sig
    semantics.sml
-   futhark.sml
    comp.sml
    comp_imp.sml
 end

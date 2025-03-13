@@ -1,6 +1,7 @@
 signature CIRCUIT = sig
 
-  datatype t = I | X | Y | Z | H | T | SW
+  datatype t = I | X | Y | Z | H | T | SW | S
+             | SX | SY | SZ
              | C of t
              | Tensor of t * t
              | Seq of t * t

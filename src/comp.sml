@@ -36,6 +36,10 @@ structure Comp :> COMP = struct
            | Z => ret (APP("Z",[]))
            | H => ret (APP("H",[]))
            | T => ret (APP("T",[]))
+           | S => ret (APP("S",[]))
+           | SX => ret (APP("SX",[]))
+           | SY => ret (APP("SY",[]))
+           | SZ => ret (APP("SZ",[]))
            | SW => ret (APP("SW",[]))
            | Seq(t1,t2) =>
              comp t1 >>= (fn e1 =>
@@ -116,6 +120,10 @@ structure Comp :> COMP = struct
           | Circuit.Z => ret (matvecmulF (APP("Z",[])) v)
           | Circuit.H => ret (matvecmulF (APP("H",[])) v)
           | Circuit.T => ret (matvecmulF (APP("T",[])) v)
+          | Circuit.S => ret (matvecmulF (APP("S",[])) v)
+          | Circuit.SX => ret (matvecmulF (APP("SX",[])) v)
+          | Circuit.SY => ret (matvecmulF (APP("SY",[])) v)
+          | Circuit.SZ => ret (matvecmulF (APP("SZ",[])) v)
           | Circuit.SW => ret (matvecmulF (APP("SW",[])) v)
   end
 
@@ -129,10 +137,15 @@ structure Comp :> COMP = struct
           val rsqrt2 = APP("C.mk_re", [CONST "(1.0 / f64.sqrt(2.0))"])
           val rnsqrt2 = APP("C.mk_re", [CONST "((-1.0) / f64.sqrt(2.0))"])
           val eipi4 = APP("C.exp", [APP("C.mk_im",[CONST "(f64.pi/4)"])])
+          val c1pi = APP("C.+", [c1,ci])
+          val c1mi = APP("C.-", [c1,ci])
+          val halfc1pi = APP("C./", [c1pi,CONST "2"])
+          val halfcn1mi = APP("C.-", [halfc1pi])
           fun ty n = "[" ^ Int.toString n ^ "][" ^ Int.toString n ^ "]C.complex"
           fun binds nil = ret ()
             | binds ((s,n,e)::rest) =
               FunNamed s (fn _ => ret e) "()" (ty n) >>= (fn _ => binds rest)
+          val Se = ARR[ARR[c1,c0], ARR[c0,ci]]
       in binds [("I", 2, ARR[ARR[c1,c0],
                              ARR[c0,c1]]),
                 ("X", 2, ARR[ARR[c0,c1],
@@ -145,6 +158,12 @@ structure Comp :> COMP = struct
                              ARR[rsqrt2,rnsqrt2]]),
                 ("T", 2, ARR[ARR[c1,c0],
                              ARR[c0,eipi4]]),
+                ("S", 2, Se),
+                ("SX", 2, ARR[ARR[c1pi,c1mi],
+                              ARR[c1mi,c1pi]]),
+                ("SY", 2, ARR[ARR[halfc1pi,halfcn1mi],
+                              ARR[halfc1pi,halfc1pi]]),
+                ("SZ", 2, Se),
                 ("SW", 4, ARR[ARR[c1,c0,c0,c0],
                               ARR[c0,c0,c1,c0],
                               ARR[c0,c1,c0,c0],

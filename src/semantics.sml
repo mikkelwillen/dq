@@ -63,6 +63,9 @@ structure Semantics :> SEMANTICS = struct
           val ci = C.fromIm 1.0
           val rsqrt2 = C.fromRe (1.0 / Math.sqrt 2.0)
           val eipi4 = C.exp(C.fromIm(Math.pi/4.0))
+          fun add x y = C.+(x,y)
+          fun sub x y = C.-(x,y)
+          fun half x = C./(x,C.fromInt 2)
       in case t of
              I => fromIntM [[1,0],
                             [0,1]]
@@ -76,6 +79,14 @@ structure Semantics :> SEMANTICS = struct
                                   [rsqrt2,C.~ rsqrt2]]
            | T => M.fromListList [[c1,c0],
                                   [c0,eipi4]]
+           | S => M.fromListList [[c1,c0],
+                                  [c0,ci]]
+           | SX => M.fromListList [[add c1 ci,sub c1 ci],
+                                   [sub c1 ci,add c1 ci]]
+           | SY => let val a = half(add c1 ci)
+                   in M.fromListList [[a,C.~a],[a,a]]
+                   end
+           | SZ => sem S
            | SW => fromIntM [[1,0,0,0],
                              [0,0,1,0],
                              [0,1,0,0],

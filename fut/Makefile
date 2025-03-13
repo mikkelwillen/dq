@@ -5,6 +5,7 @@ lib:
 .PHONY: test
 test: lib
 	futhark test dqfut_test.fut ex1.fut grover.fut ghz.fut
+	$(MAKE) -C qsim test
 
 .PHONY: clean
 clean:

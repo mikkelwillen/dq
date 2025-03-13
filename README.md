@@ -12,6 +12,9 @@ vector, to specialising simulators that work by generating optimised
 data-parallel code to be executed on GPUs. These GPU simulators are based on a
 Futhark quantum simulation library, which is also part of the sources.
 
+The framework also provides tools for converting between circuit
+representations.
+
 ## Library Structure
 
 - `fut/`: [Futhark](http://futhark-lang.org) data-parallel [gate library](/fut/qsim.fut).
@@ -23,7 +26,9 @@ Futhark quantum simulation library, which is also part of the sources.
 
 - `src/`: Modules for specifying and drawing circuits, modules for giving the
   semantics for circuits, modules for executing circuits and for compiling
-  circuits into data-parallel Futhark code.
+  circuits into data-parallel Futhark code, tool `qsim2fut` for parsing
+  [qsim](https://github.com/quantumlib/qsim) circuit files and converting them
+  into futhark programs.
 
 - `examples/`: Example quantum algorithms. Currently, only Grover's algorithm is
   available...

@@ -44,6 +44,10 @@ structure CompImp :> COMP_IMP = struct
           | Circuit.Z => Let v >>= (ret o gate "Z" c q)
           | Circuit.H => Let v >>= (ret o gate "H" c q)
           | Circuit.T => Let v >>= (ret o gate "T" c q)
+          | Circuit.S => Let v >>= (ret o gate "S" c q)
+          | Circuit.SX => Let v >>= (ret o gate "SX" c q)
+          | Circuit.SY => Let v >>= (ret o gate "SY" c q)
+          | Circuit.SZ => Let v >>= (ret o gate "SZ" c q)
           | Circuit.SW => (checkNoC "SW" c; Let v >>= (ret o swapF q))
   end
 

@@ -2,7 +2,8 @@ structure Circuit : CIRCUIT = struct
 
   infix |> fun a |> f = f a
 
-  datatype t = I | X | Y | Z | H | T | SW
+  datatype t = I | X | Y | Z | H | T | SW | S
+             | SX | SY | SZ
              | Tensor of t * t
              | Seq of t * t
              | C of t
@@ -18,6 +19,7 @@ structure Circuit : CIRCUIT = struct
                 | Seq(t1,t2) => maybePar (p > 3) (pp 3 t1 ^ " ++ " ^ pp 3 t2)
                 | C t => "C" ^ pp 8 t
                 | I => "I" | X => "X" | Y => "Y" | Z => "Z" | H => "H" | T => "T" | SW => "SW"
+                | S => "S" | SX => "SX" | SY => "SY" | SZ => "SZ"
     in pp 0 t
     end
 
@@ -38,12 +40,18 @@ structure Circuit : CIRCUIT = struct
                 | Z => Diagram.box "Z"
                 | H => Diagram.box "H"
                 | T => Diagram.box "T"
+                | S => Diagram.box "S"
+                | SX => Diagram.box "SX"
+                | SY => Diagram.box "SY"
+                | SZ => Diagram.box "SZ"
                 | C t' =>
                   case collect_cntrl 1 t' of
                       (n,X) => Diagram.cntrln n "X"
                     | (n,Y) => Diagram.cntrln n "Y"
                     | (n,Z) => Diagram.cntrln n "Z"
                     | (n,H) => Diagram.cntrln n "H"
+                    | (n,T) => Diagram.cntrln n "T"
+                    | (n,S) => Diagram.cntrln n "S"
                     | (n,_) => raise Fail ("Circuit.draw: Controlled circuit " ^
                                            pp t ^ " cannot be drawn")
       in dr t |> Diagram.toString
@@ -63,12 +71,21 @@ structure Circuit : CIRCUIT = struct
                 | Z => DiagramL.box "Z"
                 | H => DiagramL.box "H"
                 | T => DiagramL.box "T"
+                | S => DiagramL.box "S"
+                | SX => DiagramL.box "\\sqrt{X}"
+                | SY => DiagramL.box "\\sqrt{Y}"
+                | SZ => DiagramL.box "\\sqrt{Z}"
                 | C t' =>
                   case collect_cntrl 1 t' of
                       (n,X) => DiagramL.cntrln n "X"
                     | (n,Y) => DiagramL.cntrln n "Y"
                     | (n,Z) => DiagramL.cntrln n "Z"
                     | (n,H) => DiagramL.cntrln n "H"
+                    | (n,T) => DiagramL.cntrln n "T"
+                    | (n,S) => DiagramL.cntrln n "S"
+                    | (n,SX) => DiagramL.cntrln n "\\sqrt{X}"
+                    | (n,SY) => DiagramL.cntrln n "\\sqrt{Y}"
+                    | (n,SZ) => DiagramL.cntrln n "\\sqrt{Z}"
                     | (n,_) => raise Fail ("Circuit.draw: Controlled circuit " ^
                                            pp t ^ " cannot be drawn")
       in dr t |> DiagramL.toString
