@@ -12,7 +12,7 @@ test: test3.c.res
 clean:
 	rm -rf *~ *.c *.fut test3 circuit_q24 *.exe *.out *.res
 
-%.fut: %.qsim
+%.fut: %.qsim ../../src/qsim2fut
 	../../src/qsim2fut -dqfut ../dqfut $< > $@
 
 %.c.exe: %.fut

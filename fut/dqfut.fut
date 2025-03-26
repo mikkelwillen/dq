@@ -4,46 +4,49 @@ module type gates = {
   type c              -- type of complex numbers
   type q = i64        -- qubit index
 
-  type^ gate_snd = c -> c                                      -- C -> C; gate on the form [[1,0],[0,a]]
-  type^ gate = c -> c -> (c,c)                                 -- C^2 -> C^2
-  type^ gate2 = c -> c -> c -> c -> (c,c,c,c)                  -- C^4 -> C^4
+  type^ gate_snd = c -> c                            -- C -> C; gate on the form [[1,0],[0,a]]
+  type^ gate = c -> c -> (c,c)                       -- C^2 -> C^2
+  type^ gate2 = c -> c -> c -> c -> (c,c,c,c)        -- C^4 -> C^4
 
-  type st[n] = [2**n]c
+  type st[n] = [2**n]c                               -- state vector
+  type^ stT[n] = *st[n] -> *st[n]	             -- state transformer
 
-  val gate_sndC [n] : (m:i64) -> q -> gate_snd -> *st[n] -> *st[n]  -- S, ...
-  val gateC     [n] : (m:i64) -> q -> gate -> *st[n] -> *st[n]      -- X, H, ...
-  val gate2     [n] : q -> gate2 -> *st[n] -> *st[n]                -- e.g., swap
+  val gate_sndC [n] : (m:i64) -> q -> gate_snd -> stT[n]  -- S, ...
+  val gateC     [n] : (m:i64) -> q -> gate -> stT[n]      -- X, H, ...
+  val gate2     [n] : q -> gate2 -> stT[n]                -- e.g., swap
 
-  val gateX   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateY   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateZ   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateH   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateT   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateS   [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateSd  [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateR   [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
-  val gateRx  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
-  val gateRy  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
-  val gateRz  [n] : f64 -> q -> *st[n] -> *st[n]               -- 0 <= q < n
-  val gateSX  [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
-  val gateSY  [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n
+  val gateX   [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateY   [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateZ   [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateH   [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateT   [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateS   [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateSd  [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateR   [n] : f64 -> q -> stT[n]               -- 0 <= q < n
+  val gateRx  [n] : f64 -> q -> stT[n]               -- 0 <= q < n
+  val gateRy  [n] : f64 -> q -> stT[n]               -- 0 <= q < n
+  val gateRz  [n] : f64 -> q -> stT[n]               -- 0 <= q < n
+  val gateSX  [n] : q -> stT[n]                      -- 0 <= q < n
+  val gateSY  [n] : q -> stT[n]                      -- 0 <= q < n
 
-  val cntrlX  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlY  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlZ  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlH  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlT  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlS  [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlSd [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlR  [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
-  val cntrlRx [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
-  val cntrlRy [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
-  val cntrlRz [n] : (m:i64) -> f64 -> q -> *st[n] -> *st[n]    -- 0 <= q < n - m
-  val cntrlSX [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
-  val cntrlSY [n] : (m:i64) -> q -> *st[n] -> *st[n]           -- 0 <= q < n - m
+  val cntrlX  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlY  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlZ  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlH  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlT  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlS  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlSd [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlR  [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
+  val cntrlRx [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
+  val cntrlRy [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
+  val cntrlRz [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
+  val cntrlSX [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
+  val cntrlSY [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
 
-  val swap    [n] : q -> *st[n] -> *st[n]                      -- 0 <= q < n - 1
-  val swap2   [n] : (q:q) -> (r:q) -> *st[n] -> *st[n]         -- 0 <= q < n - 1, q < r < n
+  val swap    [n] : q -> stT[n]                      -- 0 <= q < n - 1
+  val swap2   [n] : (q:q) -> (r:q) -> stT[n]         -- 0 <= q < n - 1, q < r < n
+
+  val lsb_toggle [n] : stT[n]
 
   type ket[n] = [n]i64
   val fromKet [n] : ket[n] -> *st[n]
@@ -51,13 +54,14 @@ module type gates = {
 
   type dist[n] = [2**n](ket[n],f64)
 
-  val dist    [n] : st[n] -> dist[n]
-  val distmax [n] : dist[n] -> (ket[n],f64)
+  val dist       [n] : st[n] -> dist[n]
+  val distmax    [n] : dist[n] -> (ket[n],f64)
 
   -- Some utility functions
   val <*<      'a : (q -> *a -> *a) -> (q -> *a -> *a) -> (q -> *a -> *a)
   val >*>      'a : (q -> *a -> *a) -> (q -> *a -> *a) -> (q -> *a -> *a)
   val |*>   'a 'b : *a -> (*a -> *b) -> *b
+  val >* 'a 'b 'c : (*a -> *b) -> (*b -> *c) -> (*a -> *c)
   val repeat   'a : i64 -> (i64 -> *a -> *a) -> *a -> *a
 }
 
@@ -73,6 +77,7 @@ module gates : gates with c = complex.complex = {
   type^ gate2 = c -> c -> c -> c -> (c,c,c,c)
 
   type st[n] = [2**n]c
+  type^ stT[n] = *st[n] -> *st[n]
 
   def i = complex.mk_im 1.0
   def ni = complex.mk_im (-1.0)
@@ -378,6 +383,18 @@ module gates : gates with c = complex.complex = {
   def dist [n] (v:st[n]) : dist[n] =
     map2 (\i p -> (toKet n i, p)) (iota (2**n)) (dist0 v)
 
+  def toggle (n:i64) (v:u64) : u64 =
+    loop r = 0u64 for i < n do ((r << 1) | ((v >> u64.i64 i) & 1))
+
+  def lsb_toggle [n] (s: *st[n]) : *st[n] =
+    let (is, vs) = map2 (\i c ->
+			   let i' = toggle n (u64.i64 i)
+				    |> i64.u64
+			   in (i',c)
+			) (iota (2**n)) s
+		   |> unzip
+    in scatter s is vs
+
   def distmax [n] (d:dist[n]) =
     reduce (\x y -> if x.1 > y.1 then x else y) d[0] d
 
@@ -391,4 +408,7 @@ module gates : gates with c = complex.complex = {
     \q (v:*a) : *a -> g q (f q v)
 
   def (|*>) 'a 'b (a:*a) (f:*a -> *b) : *b = f a
+
+  def (>*) 'a 'b 'c (g:*a -> *b) (f:*b -> *c) : *a -> *c =
+    \(s:*a) : *c -> f (g s)
 }

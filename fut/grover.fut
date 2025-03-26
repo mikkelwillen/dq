@@ -3,37 +3,33 @@
 -- Spec: main(n): For a number of qubits n > 4, search for the value 12.
 
 import "dqfut"
-
 open gates
 
-def grover_diff [n] (s:*st[n]) : *st[n] =
-  let s = repeat n (gateH >*> gateX) s      -- fuse
-  let s = gateH (n-1) s
-  let s = cntrlX (n-1) 0 s
-  let s = gateH (n-1) s
-  let s = repeat n (gateX >*> gateH) s      -- fuse
-  in s
+def grover_diff [n] : stT[n] =
+     repeat n (gateH >*> gateX)
+  >* gateH (n-1)
+  >* cntrlX (n-1) 0
+  >* gateH (n-1)
+  >* repeat n (gateX >*> gateH)
 
-def encodeNum [n] (i:i64) (s:*st[n]) : *st[n] =
-  (loop (s,n,i) = (s,n,i) while n > 0 do
-     if i % 2 == 0 then (gateX (n-1) s, n-1, i/2)
-     else (s,n-1,i/2)
+def encNum [n] (i:i64) (s:*st[n]) : *st[n] =
+  (loop (s,i) = (s,i) for n in n..>0 do
+     if i % 2 == 0
+     then (gateX (n-1) s, i/2)
+     else (s,i/2)
   ).0
 
-def oracle [n] i (s:*st[n]) : *st[n] =
-  let s = encodeNum i s
-  let s = cntrlZ (n-1) 0 s
-  in encodeNum i s
+def oracle [n] i : stT[n] =
+  encNum i >* cntrlZ (n-1) 0 >* encNum i
 
 def grover (n:i64) (i:i64) : (ket[n], f64) =
-  let k = i64.f64(f64.ceil(f64.sqrt(f64.i64(2**n) * f64.pi / 4)))
+  let k = 2**n |> f64.i64 |> (*(f64.pi/4))
+          |> f64.sqrt |> f64.ceil |> i64.f64
   let s = fromKet (replicate n 0)
-  let s = repeat n gateH s
-  let s = repeat k (\_ (s:*st[n]) : *st[n] ->
-		      let s = oracle i s
-		      in grover_diff s) s
-  let (k,p) = dist s |> distmax
-  in (k,p)
+      |*> repeat n gateH
+      |*> repeat k (\_ ->
+		      oracle i >* grover_diff)
+  in dist s |> distmax
 
 -- Grover's algorithm searches for the index where the oracle
 -- returns 1, which it does for the binary encoding of the
