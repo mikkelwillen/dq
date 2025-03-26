@@ -86,4 +86,4 @@ entry bench_qft (k:i64) : (f64, f64) =
 -- notest input { 17i64 } output { 0.002762135864010f64 0f64 }
 -- notest input { 18i64 } output { 0.001953125000000f64 0f64 }
 -- notest input { 19i64 } output { 0.001381067932005f64 0f64 }
--- notest input { 20i64 } output { 0.000976562500000f64 0f64 }
+-- disable input { 20i64 } output { 0.000976562500000f64 0f64 }

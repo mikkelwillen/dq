@@ -12,6 +12,11 @@ clean:
 	rm -rf *.expected *.actual *~ *.c ex1 dqfut_test grover ghz qft *.multicore.data
 	$(MAKE) -C qsim clean
 
+BENCHBACKEND?=c
+.PHONY: bench
+bench:
+	futhark bench -r 3 --backend=$(BENCHBACKEND) ghz.fut grover.fut qft.fut
+
 .PHONY: realclean
 realclean: clean
 	rm -rf lib

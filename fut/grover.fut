@@ -55,11 +55,11 @@ entry bench_grover n =
 -- input { 5i64 } output { true }
 -- input { 6i64 } output { true }
 -- input { 7i64 } output { true }
--- disable input { 8i64 } output { true }
--- disable input { 9i64 } output { true }
--- disable input { 10i64 } output { true }
--- disable input { 11i64 } output { true }
--- disable input { 12i64 } output { true }
--- disable input { 13i64 } output { true }
--- disable input { 14i64 } output { true }
--- disable input { 15i64 } output { true }
+-- notest input { 8i64 } output { true }
+-- notest input { 9i64 } output { true }
+-- notest input { 10i64 } output { true }
+-- notest input { 11i64 } output { true }
+-- notest input { 12i64 } output { true }
+-- notest input { 13i64 } output { true }
+-- notest input { 14i64 } output { true }
+-- notest input { 15i64 } output { true }
