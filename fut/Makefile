@@ -4,12 +4,12 @@ lib:
 
 .PHONY: test
 test: lib
-	futhark test dqfut_test.fut ex1.fut grover.fut ghz.fut qft.fut
+	futhark test dqfut_test.fut ex1.fut grover.fut ghz.fut qft.fut fusion.fut
 	$(MAKE) -C qsim test
 
 .PHONY: clean
 clean:
-	rm -rf *.expected *.actual *~ *.c ex1 dqfut_test grover ghz qft *.multicore.data
+	rm -rf *.expected *.actual *~ *.c ex1 dqfut_test grover ghz qft fusion *.multicore.data
 	$(MAKE) -C qsim clean
 
 BENCHBACKEND?=c
