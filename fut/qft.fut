@@ -9,7 +9,7 @@ open gates
 def init [k] (n:i64) (s: *st[k]) : *st[k] =
   (loop (s,n) = (s,n) for i < k do
      if n % 2 != 0 then (gateX i s, n / 2)
-     else (s,n / 2)
+     else (s, n / 2)
   ).0
 
 def sw [k] (p:i64) (q:i64) (s: *st[k]) : *st[k] =
@@ -19,14 +19,14 @@ def sw [k] (p:i64) (q:i64) (s: *st[k]) : *st[k] =
 
 def qft_rots [k] (s: *st[k]) : *st[k] =
   loop s = s for n in k-1..>-1 do
-    loop s = gateH n s for q in 0..<n do
-      sw n (q+1) s |*>
-      cntrlR 1 (f64.pi/(f64.i64(2**(n-q)))) q |*>
-      sw n (q+1)
+    gateH n s |*>
+    repeat n (\q -> sw n (q+1) >*
+    	            cntrlR 1 (f64.pi/(f64.i64(2**(n-q)))) q >*
+	            sw n (q+1)
+	     )
 
 def qft_swaps [k] (s: *st[k]) : *st[k] =
-  loop s = s for q in 0..<k/2 do
-    sw q (k-q-1) s
+  repeat (k/2) (\q -> sw q (k-q-1)) s
 
 -- qft on k qubits for number n
 def qft (k:i64) (n:i64) : *st[k] =

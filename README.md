@@ -19,7 +19,7 @@ representations.
 
 - `fut/`: [Futhark](http://futhark-lang.org) data-parallel [gate library](/fut/qsim.fut).
   The library can be used on its own for writing
-  quantum algorithms (e.g., [Grover's algorithm](/fut/grover.fut)) or it can be
+  quantum algorithms (e.g., [Grover's algorithm](/fut/grover.fut) or [QFT](/fut/qft.fut)) or it can be
   used as a target library for high-level languages. The library supports gate
   fusion for 1-qubit gates as long as gates are applied immediately after each
   other on the same qubit.
