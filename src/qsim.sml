@@ -128,7 +128,7 @@ structure Qsim :> QSIM = struct
 
     fun prelude dqfut =
         "import \"" ^ dqfut ^ "\"\n\
-        \open gates\n"
+        \open mk_gates(f64)\n"
 
     fun stT n = "*st[" ^ Int.toString n ^ "]"
 

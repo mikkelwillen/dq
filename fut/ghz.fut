@@ -5,7 +5,7 @@
 -- Origin: Ported from Supermarq
 
 import "dqfut"
-open gates
+open mk_gates(f64)
 
 -- return probabilities of states |0..0> and |1..1>
 def ghz n : (f64, f64) =

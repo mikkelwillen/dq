@@ -1,8 +1,11 @@
 import "lib/github.com/diku-dk/complex/complex"
 
 module type gates = {
-  type c              -- type of complex numbers
-  type q = i64        -- qubit index
+
+  module complex : complex
+  type r = complex.real     -- type of real numbers
+  type c = complex.complex  -- type of complex numbers
+  type q = i64              -- qubit index
 
   type^ gate_snd = c -> c                            -- C -> C; gate on the form [[1,0],[0,a]]
   type^ gate = c -> c -> (c,c)                       -- C^2 -> C^2
@@ -22,10 +25,10 @@ module type gates = {
   val gateT   [n] : q -> stT[n]                      -- 0 <= q < n
   val gateS   [n] : q -> stT[n]                      -- 0 <= q < n
   val gateSd  [n] : q -> stT[n]                      -- 0 <= q < n
-  val gateR   [n] : f64 -> q -> stT[n]               -- 0 <= q < n
-  val gateRx  [n] : f64 -> q -> stT[n]               -- 0 <= q < n
-  val gateRy  [n] : f64 -> q -> stT[n]               -- 0 <= q < n
-  val gateRz  [n] : f64 -> q -> stT[n]               -- 0 <= q < n
+  val gateR   [n] : r -> q -> stT[n]                 -- 0 <= q < n
+  val gateRx  [n] : r -> q -> stT[n]                 -- 0 <= q < n
+  val gateRy  [n] : r -> q -> stT[n]                 -- 0 <= q < n
+  val gateRz  [n] : r -> q -> stT[n]                 -- 0 <= q < n
   val gateSX  [n] : q -> stT[n]                      -- 0 <= q < n
   val gateSY  [n] : q -> stT[n]                      -- 0 <= q < n
 
@@ -36,10 +39,10 @@ module type gates = {
   val cntrlT  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
   val cntrlS  [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
   val cntrlSd [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
-  val cntrlR  [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
-  val cntrlRx [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
-  val cntrlRy [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
-  val cntrlRz [n] : (m:i64) -> f64 -> q -> stT[n]    -- 0 <= q < n - m
+  val cntrlR  [n] : (m:i64) -> r -> q -> stT[n]      -- 0 <= q < n - m
+  val cntrlRx [n] : (m:i64) -> r -> q -> stT[n]      -- 0 <= q < n - m
+  val cntrlRy [n] : (m:i64) -> r -> q -> stT[n]      -- 0 <= q < n - m
+  val cntrlRz [n] : (m:i64) -> r -> q -> stT[n]      -- 0 <= q < n - m
   val cntrlSX [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
   val cntrlSY [n] : (m:i64) -> q -> stT[n]           -- 0 <= q < n - m
 
@@ -52,10 +55,10 @@ module type gates = {
   val fromKet [n] : ket[n] -> *st[n]
   val toKet       : (n:i64) -> (i:i64) -> ket[n]
 
-  type dist[n] = [2**n](ket[n],f64)
+  type dist[n] = [2**n](ket[n],r)
 
   val dist       [n] : st[n] -> dist[n]
-  val distmax    [n] : dist[n] -> (ket[n],f64)
+  val distmax    [n] : dist[n] -> (ket[n],r)
 
   -- Some utility functions
   val <*<      'a : (q -> *a -> *a) -> (q -> *a -> *a) -> (q -> *a -> *a)
@@ -66,9 +69,10 @@ module type gates = {
 }
 
 
-module complex = mk_complex (f64)
+module mk_gates (W:real) : gates with r = W.t = {
 
-module gates : gates with c = complex.complex = {
+  module complex = mk_complex(W)
+  type r = W.t
   type c = complex.complex
   type q = i64
 
@@ -79,19 +83,19 @@ module gates : gates with c = complex.complex = {
   type st[n] = [2**n]c
   type^ stT[n] = *st[n] -> *st[n]
 
-  def i = complex.mk_im 1.0
-  def ni = complex.mk_im (-1.0)
-  def rsqrt2 = complex.mk_re (1.0 / f64.sqrt 2.0)
-  def ipi4 = complex.mk_im (f64.pi / 4)
+  def i = complex.mk_im (W.i64 1)
+  def ni = complex.mk_im (W.i64 (-1))
+  def rsqrt2 = complex.mk_re (W.(i64 1 / sqrt (i64 2)))
+  def ipi4 = complex.mk_im (W.(pi / i64 4))
   def eipi4 = complex.(exp ipi4)
-  def ipi2 = complex.mk_im (f64.pi / 2)
-  def nipi2 = complex.mk_im (f64.pi / -2)
+  def ipi2 = complex.mk_im (W.(pi / i64 2))
+  def nipi2 = complex.mk_im (W.(pi / (i64 (-2))))
   def eipi2 = complex.(exp ipi2)
   def enipi2 = complex.(exp nipi2)
-  def c1 = complex.mk_re 1.0
+  def c1 = complex.mk_re (W.i64 1)
   def c1i = complex.(c1+i)
   def c1ni = complex.(c1-i)
-  def c1ihalf = complex.(c1i / mk_re 2.0)
+  def c1ihalf = complex.(c1i / mk_re (W.i64 2))
   def X a b = (b, a)
   def Y a b = complex.((ni*b, i*a))
   def Z a b = complex.((a, neg b))
@@ -102,21 +106,21 @@ module gates : gates with c = complex.complex = {
 
   def R p a b = complex.((a, b*exp(mk_im p)))
 
-  def Rx p a b =
-    let p2 = p / 2
-    let cosp2 = complex.mk_re (f64.cos p2)
-    let isinp2 = complex.(ni * mk_re(f64.sin p2))
+  def Rx (p:r) (a:c) (b:c) : (c,c) =
+    let p2 = W.(p / i64 2)
+    let cosp2 = complex.mk_re (W.cos p2)
+    let isinp2 = complex.(ni * mk_re(W.sin p2))
     in complex.((a*cosp2 - b*isinp2, b*cosp2 - a*isinp2))
 
   def Ry p a b =
-    let p2 = p / 2
-    let cosp2 = complex.mk_re (f64.cos p2)
-    let sinp2 = complex.mk_re (f64.sin p2)
+    let p2 = W.(p / i64 2)
+    let cosp2 = complex.mk_re (W.cos p2)
+    let sinp2 = complex.mk_re (W.sin p2)
     in complex.((a*cosp2 - b*sinp2, b*cosp2 + a*sinp2))
 
   def Rz p a b =
-    let p2 = p / 2
-    let np2 = p / -2
+    let p2 = W.(p / i64 2)
+    let np2 = W.(p / i64 (-2))
     in complex.((a*exp(mk_im np2),
 		 b*exp(mk_im p2)))
 
@@ -300,16 +304,16 @@ module gates : gates with c = complex.complex = {
   def cntrlSd [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
     gateC m q Sd v
 
-  def cntrlR [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def cntrlR [n] (m:i64) (p:r) (q:q) (v: *st[n]) : *st[n] =
     gateC m q (R p) v
 
-  def cntrlRx [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def cntrlRx [n] (m:i64) (p:r) (q:q) (v: *st[n]) : *st[n] =
     gateC m q (Rx p) v
 
-  def cntrlRy [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def cntrlRy [n] (m:i64) (p:r) (q:q) (v: *st[n]) : *st[n] =
     gateC m q (Ry p) v
 
-  def cntrlRz [n] (m:i64) (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def cntrlRz [n] (m:i64) (p:r) (q:q) (v: *st[n]) : *st[n] =
     gateC m q (Rz p) v
 
   def cntrlSX [n] (m:i64) (q:q) (v: *st[n]) : *st[n] =
@@ -339,16 +343,16 @@ module gates : gates with c = complex.complex = {
   def gateSd [n] (q:q) (v: *st[n]) : *st[n] =
     gate_snd q (\c -> complex.(c*ni)) v
 
-  def gateR [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def gateR [n] (p:r) (q:q) (v: *st[n]) : *st[n] =
     gate_snd q (\c -> complex.(c*exp(mk_im p))) v
 
-  def gateRx [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def gateRx [n] (p:r) (q:q) (v: *st[n]) : *st[n] =
     gate q (Rx p) v
 
-  def gateRy [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def gateRy [n] (p:r) (q:q) (v: *st[n]) : *st[n] =
     gate q (Ry p) v
 
-  def gateRz [n] (p:f64) (q:q) (v: *st[n]) : *st[n] =
+  def gateRz [n] (p:r) (q:q) (v: *st[n]) : *st[n] =
     gate q (Rz p) v
 
   def gateSX [n] (q:q) (v: *st[n]) : *st[n] =
@@ -362,7 +366,7 @@ module gates : gates with c = complex.complex = {
   def fromKet [n] (xs:[n]i64) : *st[n] =
     let j = map2 (\x i -> x * 2**i) xs (reverse(iota n))
             |> reduce (+) 0
-    in map (\i -> complex.mk_re(if i==j then 1 else 0))
+    in map (\i -> complex.mk_re(if i==j then W.i64 1 else W.i64 0))
            (iota (2**n))
 
   def toKet (n:i64) (i:i64) : ket[n] =
@@ -373,12 +377,12 @@ module gates : gates with c = complex.complex = {
                     else (r with [n-j-1] = 1, k / 2)
     in res
 
-  def sq x : f64 = x*x
+  def sq x : r = W.(x*x)
 
-  def dist0 [m] (v:[m]c) : [m]f64 =
+  def dist0 [m] (v:[m]c) : [m]r =
     map (sq <-< complex.mag) v
 
-  type dist[n] = [2**n](ket[n],f64)
+  type dist[n] = [2**n](ket[n],r)
 
   def dist [n] (v:st[n]) : dist[n] =
     map2 (\i p -> (toKet n i, p)) (iota (2**n)) (dist0 v)
@@ -396,7 +400,7 @@ module gates : gates with c = complex.complex = {
     in scatter s is vs
 
   def distmax [n] (d:dist[n]) =
-    reduce (\x y -> if x.1 > y.1 then x else y) d[0] d
+    reduce (\x y -> if W.(x.1 > y.1) then x else y) d[0] d
 
   def repeat 'a n (f : i64 -> *a -> *a) (s:*a) : *a =
     loop s = s for i in 0..<n do f i s

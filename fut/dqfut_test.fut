@@ -1,6 +1,6 @@
 import "dqfut"
 
-open gates
+open mk_gates(f64)
 
 def test_circuit [n] (f: *st[n] -> *st[n]) (k:[n]i64) : [n]i64 =
   let v = fromKet k

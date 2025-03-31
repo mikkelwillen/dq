@@ -2,7 +2,7 @@
 -- Desc: Fuse a sequence of gate operations within a repeat construct
 
 import "dqfut"
-open gates
+open mk_gates(f64)
 
 def fuse (n:i64) : f64 =
   let s = fromKet (replicate n 0)

@@ -3,7 +3,7 @@
 -- Spec: main(n): For a number of qubits n > 4, search for the value 12.
 
 import "dqfut"
-open gates
+open mk_gates(f64)
 
 def grover_diff [n] : stT[n] =
      repeat n (gateH >*> gateX)

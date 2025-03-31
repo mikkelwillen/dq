@@ -15,7 +15,7 @@
 
 import "dqfut"
 
-open gates
+open mk_gates(f64)
 
 def sim (v:*st[3]) : *st[3] =
   let v = gateH 1 v

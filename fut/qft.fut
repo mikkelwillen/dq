@@ -4,7 +4,7 @@
 -- Origin: Based on https://medium.com/@marcell.ujlaki/exploring-quantum-computing-demystifying-quantum-fourier-transformations-unveiling-the-math-with-5d74f3f8025f
 
 import "dqfut"
-open gates
+open mk_gates(f64)
 
 def init [k] (n:i64) (s: *st[k]) : *st[k] =
   (loop (s,n) = (s,n) for i < k do
@@ -34,15 +34,17 @@ def qft (k:i64) (n:i64) : *st[k] =
   let s = init n s
   in qft_rots s |*> qft_swaps
 
+def unc c = (complex.re c, complex.im c)
+
 def main (k:i64) : ([2**k]f64, [2**k]f64) =
   let s = qft k 12 |*> lsb_toggle
-  in unzip s
+  in unzip (map unc s)
 
 -- test from https://medium.com/@marcell.ujlaki/exploring-quantum-computing-demystifying-quantum-fourier-transformations-unveiling-the-math-with-5d74f3f8025f
 
 entry test_qft (k:i64) (n:i64) : ([2**k]f64, [2**k]f64) =
   let s = qft k n |*> lsb_toggle
-  in unzip s
+  in unzip (map unc s)
 
 -- ==
 -- entry: test_qft
@@ -58,7 +60,7 @@ entry test_qft (k:i64) (n:i64) : ([2**k]f64, [2**k]f64) =
 
 entry test_qft2 : (f64,f64) =
   let s = qft 10 669 |*> lsb_toggle
-  in s[0]
+  in unc (s[0])
 
 -- ==
 -- entry: test_qft2
@@ -66,7 +68,7 @@ entry test_qft2 : (f64,f64) =
 
 entry bench_qft (k:i64) : (f64, f64) =
   let s = qft k 12 |*> lsb_toggle
-  in s[0]
+  in unc (s[0])
 
 -- ==
 -- entry: bench_qft
