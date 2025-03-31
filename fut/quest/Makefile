@@ -16,33 +16,27 @@ grover/grover.exe: grover/grover.c
 	(cd grover; cmake $(QUESTDIR) -DOUTPUT_EXE=grover.exe -DUSER_SOURCE=grover.c)
 	(cd grover; make)
 
+QSIMGEN=-l
+#QSIMGEN=
+
 .PHONY: run_grover
 run_grover: grover/grover.exe
-	@grover/grover.exe -t 8 | grep Elapsed
-	@grover/grover.exe -t 10 | grep Elapsed
-	@grover/grover.exe -t 12 | grep Elapsed
-	@grover/grover.exe -t 14 | grep Elapsed
-	@grover/grover.exe -t 16 | grep Elapsed
-	@grover/grover.exe -t 18 | grep Elapsed
+	for n in 8 10 12 14 16 18 ; do \
+           grover/grover.exe -t $(QSIMGEN) $$n 2> grover/grover_$$n.qsim | grep Elapsed ; \
+        done
 
 .PHONY: run_ghz
 run_ghz: ghz/ghz.exe
-	@ghz/ghz.exe -t 20 | grep Elapsed
-	@ghz/ghz.exe -t 22 | grep Elapsed
-	@ghz/ghz.exe -t 24 | grep Elapsed
-	@ghz/ghz.exe -t 26 | grep Elapsed
-	@ghz/ghz.exe -t 28 | grep Elapsed
-	@ghz/ghz.exe -t 30 | grep Elapsed
+	for n in 20 22 24 26 28 30 ; do \
+           ghz/ghz.exe -t $(QSIMGEN) $$n 2> ghz/ghz_$$n.qsim | grep Elapsed ; \
+        done
 
 .PHONY: run_qft
 run_qft: qft/qft.exe
-	@qft/qft.exe -t 14 | grep Elapsed
-	@qft/qft.exe -t 16 | grep Elapsed
-	@qft/qft.exe -t 18 | grep Elapsed
-	@qft/qft.exe -t 20 | grep Elapsed
-	@qft/qft.exe -t 22 | grep Elapsed
-	@qft/qft.exe -t 24 | grep Elapsed
+	for n in 14 16 18 20 22 24 ; do \
+           qft/qft.exe -t $(QSIMGEN) $$n 2> qft/qft_$$n.qsim | grep Elapsed ; \
+        done
 
 .PHONY: clean
 clean:
-	rm -rf */*.exe */Makefile *~ */*~ */CMake* */QuEST */*.cmake
+	rm -rf */*.exe */Makefile *~ */*~ */CMake* */QuEST */*.cmake */*.qsim
