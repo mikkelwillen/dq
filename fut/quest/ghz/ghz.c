@@ -12,10 +12,10 @@ double
 ghz (int n,int s) {
   QuESTEnv env = createQuESTEnv();
   Qureg qr = createQureg(n, env);
-  initZeroState(qr);
-  hadamard (qr, 0);
+  initZeroState(qr);                qs_init(n);
+  hadamard (qr, 0);                 qs_gate1("h", 0);
   for (int i=0; i < n-1; i++) {
-    controlledNot(qr, i, i+1);
+    controlledNot(qr, i, i+1);      qs_gate2("cx", i, i+1);
   }
   double r = getProbAmp(qr, s);
   destroyQureg(qr, env);

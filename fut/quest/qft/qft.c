@@ -11,15 +11,15 @@
 void init(Qureg qr, int k, int n) {
   for (int q=0; q < k; q++) {
     if (n % 2) {
-      pauliX(qr,q);
+      pauliX(qr,q);                     qs_gate1_("x",q);
     }
     n /= 2;
-  }
+  }                                     qs_step();
 }
 
 void swapG(Qureg qr,int p,int q) {
   if (p==q) { return; }
-  swapGate(qr,p,q);
+  swapGate(qr,p,q);                     qs_gate2("sw",p,q);
   return;
 }
 
@@ -31,11 +31,11 @@ void qft_swaps(Qureg qr,int k) {
 
 void qft_rots(Qureg qr, int k) {
   for (int n = k - 1; n >= 0; n--) {
-    hadamard(qr,n);
+    hadamard(qr,n);                         qs_gate1("h",n);
     for (int q = 0; q < n; q++) {
       swapG(qr,n,q+1);
-      controlledPhaseShift(qr,q,q+1,
-			   M_PI/(double)pow(2,n-q));
+      double r = M_PI/(double)pow(2,n-q);
+      controlledPhaseShift(qr,q,q+1,r);     qs_gate2r("cr",q,q+1,r);
       swapG(qr,n,q+1);
     }
   }
@@ -46,7 +46,7 @@ void qft_rots(Qureg qr, int k) {
 double qft (int k,int n) {
   QuESTEnv env = createQuESTEnv();
   Qureg qr = createQureg(k, env);
-  initZeroState(qr);
+  initZeroState(qr);                        qs_init(k);
   init(qr,k,n);
   qft_rots(qr,k);
   qft_swaps(qr,k);
@@ -60,7 +60,7 @@ double qft (int k,int n) {
 int
 main(int argc, char* argv[]) {
   int k = runopts(argc,argv);
-  int n = 669;
+  int n = 12;
   printf("Computing QFT(%d)(%d)\n", k, n);
   long tic = gettm();
   double r = qft(k,n);

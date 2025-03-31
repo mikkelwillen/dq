@@ -10,31 +10,31 @@
 
 void diffuse(Qureg qr, int n, int* cntrls) {
   for (int i=0; i<n; i++) {
-    hadamard(qr,i);
-    pauliX(qr,i);
-  }
-  hadamard(qr,n-1);
-  multiControlledMultiQubitNot(qr,cntrls,n-1,(int[]){n-1},1);
-  hadamard(qr,n-1);
+    hadamard(qr,i);                                              qs_gate1_("h",i);
+    pauliX(qr,i);                                                qs_gate1_("x",i);
+  }                                                              qs_step();
+  hadamard(qr,n-1);                                              qs_gate1("h",n-1);
+  multiControlledMultiQubitNot(qr,cntrls,n-1,(int[]){n-1},1);    qs_mcgate("x",0,n-2,n-1);
+  hadamard(qr,n-1);                                              qs_gate1("h",n-1);
   for (int i=0; i<n; i++) {
-    pauliX(qr,i);
-    hadamard(qr,i);
-  }
+    pauliX(qr,i);                                                qs_gate1_("x",i);
+    hadamard(qr,i);                                              qs_gate1_("h",i);
+  }                                                              qs_step();
 }
 
 void encNum(Qureg qr, int n, int i) {
   //for (int j=n-1; j >= 0; j--) {   // toggle lsb/msb encoding
   for (int j=0; j < n; j++) {
     if (i % 2 == 0) {
-      pauliX(qr,j);
+      pauliX(qr,j);          qs_gate1_("x",j);
     }
     i /= 2;
-  }
+  }                          qs_step();
 }
 
 void oracle(Qureg qr, int n, int i, int* cntrls) {
   encNum(qr, n, i);
-  multiControlledPhaseFlip(qr,cntrls,n);
+  multiControlledPhaseFlip(qr,cntrls,n);    qs_mcgate("z",0,n-2,n-1);
   encNum(qr, n, i);
 }
 
@@ -45,11 +45,11 @@ double grover (int n,int s) {
   }
   QuESTEnv env = createQuESTEnv();
   Qureg qr = createQureg(n, env);
-  initZeroState(qr);
+  initZeroState(qr);                                       qs_init(n);
   int k = (int)ceil(sqrt((double)(pow(2,n))) * M_PI/4.0);
   for (int i=0; i<n; i++) {
-    hadamard(qr,i);
-  }
+    hadamard(qr,i);                                        qs_gate1_("h",i);
+  }                                                        qs_step();
   for (int i=0; i<k; i++) {
     oracle(qr,n,s,cntrls);
     diffuse(qr,n,cntrls);

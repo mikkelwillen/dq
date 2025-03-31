@@ -26,11 +26,12 @@ void reporttm(char* s, int N, long tic) {
   printf("Elapsed time %s %d: %f seconds\n", s, N, (double)(toc-tic)/1000.0);
 }
 
+int lqsim = 0;
 int timing = 0;
 
 int runopts(int argc, char* argv[]) {
   int N = 0;
-    int optIdx = 1;
+  int optIdx = 1;
   if (argc <= 1) {
     usage(argv[0]);
   }
@@ -38,6 +39,12 @@ int runopts(int argc, char* argv[]) {
     if (strcmp(argv[optIdx],"-t") == 0) {
       printf("Enabling timing\n");
       timing = 1;
+      optIdx++;
+      continue;
+    }
+    if (strcmp(argv[optIdx],"-l") == 0) {
+      printf("Enabling logging of qsim program on <stderr>\n");
+      lqsim = 1;
       optIdx++;
       continue;
     }
@@ -54,4 +61,68 @@ int runopts(int argc, char* argv[]) {
     usage(argv[0]);
   }
   return N;
+}
+
+// QSIM code generation
+int qsdepth = 0;   // depth state
+
+void qs_init(int q) {
+  if (lqsim > 0) {
+    fprintf(stderr,"%d\n",q);
+  }
+}
+
+void qs_step() {
+  if (lqsim > 0) {
+    qsdepth++;
+  }
+}
+
+void qs_gate1_ (char* g, int q) {
+  if (lqsim > 0 ) {
+    fprintf(stderr,"%d %s %d\n",qsdepth,g,q);
+  }
+}
+
+void qs_gate1 (char* g, int q) {
+  qs_gate1_(g,q);
+  qsdepth++;
+}
+
+void qs_gate2_ (char* g, int p, int q) {
+  if (lqsim > 0 ) {
+    fprintf(stderr,"%d %s %d %d\n",qsdepth,g,p,q);
+  }
+}
+
+void qs_gate2 (char* g, int p, int q) {
+  qs_gate2_(g,p,q);
+  qsdepth++;
+}
+
+void qs_gate1r_ (char* g, int p, double r) {
+  if (lqsim > 0 ) {
+    fprintf(stderr,"%d %s %d %f\n",qsdepth,g,p,r);
+  }
+}
+
+void qs_gate1r (char* g, int p, double r) {
+  qs_gate1r_(g,p,r);
+  qsdepth++;
+}
+
+void qs_gate2r (char* g, int p, int q, double r) {
+  if (lqsim > 0 ) {
+    fprintf(stderr,"%d %s %d %d %f\n",qsdepth++,g,p,q,r);
+  }
+}
+
+void qs_mcgate (char* g, int p, int q, int r) {
+  if (lqsim > 0 ) {
+    fprintf(stderr,"%d c ",qsdepth++);
+    for(int i=p; i <= q; i++) {
+      fprintf(stderr,"%d ",i);
+    }
+    fprintf(stderr,"%s %d\n",g,r);
+  }
 }
