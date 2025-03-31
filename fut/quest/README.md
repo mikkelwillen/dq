@@ -6,6 +6,9 @@ are installed (e.g., at `~/gits/QuEST`; path may be changed in `Makefile`).
 
 Just execute `make clean all` to run the benchmarks.
 
+If the option `-l` is passed to an executable (e.g., as in
+`ghz/ghz.exe -l 5`), QSIM code will be printed to `<stderr>`.
+
 ### Benchmarks:
 
 - [ghz/ghz.c](`ghz.c`)

@@ -11,7 +11,8 @@
 
 void usage(char* name) {
   printf("Usage: %s [OPTIONS] N\nOPTIONS:\n\
-    -t : print time used\n", name);
+    -t : print time used\n\
+    -l : output qsim-instructions on <stderr>\n", name);
   exit(-1);
 }
 
