@@ -23,8 +23,8 @@ def oracle [n] i : stT[n] =
   encNum i >* cntrlZ (n-1) 0 >* encNum i
 
 def grover (n:i64) (i:i64) : (ket[n], f64) =
-  let k = 2**n |> f64.i64 |> (*(f64.pi/4))
-          |> f64.sqrt |> f64.ceil |> i64.f64
+  let k = 2**n |> f64.i64 |> f64.sqrt
+          |> (*(f64.pi/4)) |> f64.ceil |> i64.f64
   let s = fromKet (replicate n 0)
       |*> repeat n gateH
       |*> repeat k (\_ ->
