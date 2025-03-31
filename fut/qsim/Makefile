@@ -1,5 +1,9 @@
-
+QSIMDIR=~/gits/qsim
 QSIM_FILES=test3.qsim circuit_q24.qsim
+CXX=g++
+CXXFLAGS=-O3
+NVCC=nvcc
+NVCCFLAGS=$(CXXFLAGS)
 
 .PHONY: all
 all: test3.fut
@@ -39,3 +43,12 @@ clean:
 
 ../../src/qsim2fut:
 	$(MAKE) -C ../../src qsim2fut
+
+qsim_cpu_seq: qsim_cpu.cpp
+	$(CXX) -o $@ $< -I $(QSIMDIR) $(CXXFLAGS)
+
+qsim_cpu_par: qsim_cpu.cpp
+	$(CXX) -o $@ $< -I $(QSIMDIR) $(CXXFLAGS) -fopenmp
+
+qsim_cuda: qsim_cuda.cu
+	$(NVCC) -o $@ $< -I $(QSIMDIR) $(NVCCFLAGS)
