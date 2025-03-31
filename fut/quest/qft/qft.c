@@ -19,7 +19,7 @@ void init(Qureg qr, int k, int n) {
 
 void swapG(Qureg qr,int p,int q) {
   if (p==q) { return; }
-  swapGate(qr,p,q);                     qs_gate2("is",p,q);
+  swapGate(qr,p,q);                     qs_gate2("sw",p,q);
   return;
 }
 
