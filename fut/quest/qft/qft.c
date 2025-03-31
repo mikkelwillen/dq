@@ -19,7 +19,7 @@ void init(Qureg qr, int k, int n) {
 
 void swapG(Qureg qr,int p,int q) {
   if (p==q) { return; }
-  swapGate(qr,p,q);                     qs_gate2("sw",p,q);
+  swapGate(qr,p,q);                     qs_gate2("is",p,q);
   return;
 }
 
@@ -35,7 +35,7 @@ void qft_rots(Qureg qr, int k) {
     for (int q = 0; q < n; q++) {
       swapG(qr,n,q+1);
       double r = M_PI/(double)pow(2,n-q);
-      controlledPhaseShift(qr,q,q+1,r);     qs_gate2r("cr",q,q+1,r);
+      controlledPhaseShift(qr,q,q+1,r);     qs_gate2r("cp",q,q+1,r);
       swapG(qr,n,q+1);
     }
   }

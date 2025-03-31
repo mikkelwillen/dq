@@ -15,7 +15,7 @@ ghz (int n,int s) {
   initZeroState(qr);                qs_init(n);
   hadamard (qr, 0);                 qs_gate1("h", 0);
   for (int i=0; i < n-1; i++) {
-    controlledNot(qr, i, i+1);      qs_gate2("cx", i, i+1);
+    controlledNot(qr, i, i+1);      qs_gate2("cnot", i, i+1);
   }
   double r = getProbAmp(qr, s);
   destroyQureg(qr, env);
