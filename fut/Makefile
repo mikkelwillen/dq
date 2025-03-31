@@ -11,6 +11,7 @@ test: lib
 clean:
 	rm -rf *.expected *.actual *~ *.c ex1 dqfut_test grover ghz qft fusion *.multicore.data
 	$(MAKE) -C qsim clean
+	$(MAKE) -C quest clean
 
 BENCHBACKEND?=c
 .PHONY: bench

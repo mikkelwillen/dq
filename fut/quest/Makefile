@@ -1,8 +1,12 @@
 QUESTDIR=~/gits/QuEST
 
 .PHONY: all
-all: ghz/ghz.exe grover/grover.exe
-	$(MAKE) run_ghz run_grover
+all: qft/qft.exe ghz/ghz.exe grover/grover.exe
+	$(MAKE) run_qft run_ghz run_grover
+
+qft/qft.exe: qft/qft.c
+	(cd qft; cmake $(QUESTDIR) -DOUTPUT_EXE=qft.exe -DUSER_SOURCE=qft.c)
+	(cd qft; make)
 
 ghz/ghz.exe: ghz/ghz.c
 	(cd ghz; cmake $(QUESTDIR) -DOUTPUT_EXE=ghz.exe -DUSER_SOURCE=ghz.c)
@@ -21,7 +25,7 @@ run_grover: grover/grover.exe
 	@grover/grover.exe -t 16 | grep Elapsed
 	@grover/grover.exe -t 18 | grep Elapsed
 
-.PHONY: run_grover
+.PHONY: run_ghz
 run_ghz: ghz/ghz.exe
 	@ghz/ghz.exe -t 20 | grep Elapsed
 	@ghz/ghz.exe -t 22 | grep Elapsed
@@ -29,6 +33,15 @@ run_ghz: ghz/ghz.exe
 	@ghz/ghz.exe -t 26 | grep Elapsed
 	@ghz/ghz.exe -t 28 | grep Elapsed
 	@ghz/ghz.exe -t 30 | grep Elapsed
+
+.PHONY: run_qft
+run_qft: qft/qft.exe
+	@qft/qft.exe -t 14 | grep Elapsed
+	@qft/qft.exe -t 16 | grep Elapsed
+	@qft/qft.exe -t 18 | grep Elapsed
+	@qft/qft.exe -t 20 | grep Elapsed
+	@qft/qft.exe -t 22 | grep Elapsed
+	@qft/qft.exe -t 24 | grep Elapsed
 
 .PHONY: clean
 clean:

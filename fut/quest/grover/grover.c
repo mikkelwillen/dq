@@ -1,10 +1,7 @@
 /** @file
  * Implements Grover's algorithm
  *
- * Compile and run from within the build folder, using:
- *  $ cmake .. -DUSER_SOURCE=../examples/grover.c -DOUTPUT_EXE=grover
- *  $ make
- *  $ ./grover 5
+ * For compilation, see ../Makefile and ../README.md
  *
  * @author Martin Elsman
  */

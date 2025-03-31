@@ -1,10 +1,7 @@
 /** @file
  * Implements GHZ algorithm
  *
- * Compile and run from within the build folder, using:
- *  $ cmake .. -DUSER_SOURCE=../examples/ghz.c -DOUTPUT_EXE=ghz
- *  $ make
- *  $ ./ghc 5
+ * For compilation, see ../Makefile and ../README.md
  *
  * @author Martin Elsman
  */
