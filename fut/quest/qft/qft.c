@@ -65,7 +65,7 @@ main(int argc, char* argv[]) {
   long tic = gettm();
   double r = qft(k,n);
   if (timing > 0) {
-    reporttm("qft",k,tic);
+    tmloop("qft", k, qft(k,n));
   }
   printf("Prob of first state = %f\n", r);
   return 0;

@@ -28,10 +28,9 @@ main(int argc, char* argv[]) {
   int N = runopts(argc,argv);
   int s = pow(2,N)-1;
   printf("Computing GHZ(%d)\n", N);
-  long tic = gettm();
   double r = ghz(N,s);
   if (timing > 0) {
-    reporttm("ghz",N,tic);
+    tmloop("ghz", N, ghz(N,s));
   }
   printf("Prob of last state (state %d) = %f\n", s, r);
   return 0;

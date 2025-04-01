@@ -79,7 +79,7 @@ main(int argc, char* argv[]) {
   long tic = gettm();
   double r = grover(N,s);
   if (timing > 0) {
-    reporttm("grover",N,tic);
+    tmloop("grover", N, grover(N,s));
   }
   printf("Prob of found state = " REAL_STRING_FORMAT "\n", r);
   return 0;

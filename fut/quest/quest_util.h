@@ -30,6 +30,21 @@ void reporttm(char* s, int N, long tic) {
 int lqsim = 0;
 int timing = 0;
 
+#define tmloop(s, N, f) {                                       \
+    int ms_min = 1000;                                          \
+    int runs_min = 10;                                          \
+    int ms_total = 0, runs = 0;                                 \
+    while (ms_total < ms_min || runs < runs_min) {              \
+      long bef = gettm();                                       \
+      (void)f;                                                  \
+      long aft = gettm();                                       \
+      ms_total += aft-bef;                                      \
+      runs++;                                                   \
+    }                                                           \
+    printf("Elapsed time %s %d (avg of %d): %6.1f miliseconds\n",  \
+           s, N, runs, (double)ms_total/runs);                  \
+  }
+
 int runopts(int argc, char* argv[]) {
   int N = 0;
   int optIdx = 1;
