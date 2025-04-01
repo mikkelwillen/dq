@@ -10,14 +10,14 @@
 
 void diffuse(Qureg qr, int n, int* cntrls) {
   for (int i=0; i<n; i++) {
-    hadamard(qr,i);                                              qs_gate1_("h",i);
+    hadamard(qr,i);                                              qs_gate1("h",i);
     pauliX(qr,i);                                                qs_gate1_("x",i);
   }                                                              qs_step();
   hadamard(qr,n-1);                                              qs_gate1("h",n-1);
   multiControlledMultiQubitNot(qr,cntrls,n-1,(int[]){n-1},1);    qs_mcgate("x",0,n-2,n-1);
   hadamard(qr,n-1);                                              qs_gate1("h",n-1);
   for (int i=0; i<n; i++) {
-    pauliX(qr,i);                                                qs_gate1_("x",i);
+    pauliX(qr,i);                                                qs_gate1("x",i);
     hadamard(qr,i);                                              qs_gate1_("h",i);
   }                                                              qs_step();
 }

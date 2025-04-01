@@ -41,7 +41,7 @@ int timing = 0;
       ms_total += aft-bef;                                      \
       runs++;                                                   \
     }                                                           \
-    printf("Elapsed time %s %d (avg of %d): %6.1f miliseconds\n",  \
+    printf("Elapsed time %s %d (avg of %d): %6.1f ms\n",  \
            s, N, runs, (double)ms_total/runs);                  \
   }
 

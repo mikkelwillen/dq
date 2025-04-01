@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     runs++;
   }
 
-  std::cout << "Microseconds (avg of " << runs << "): " << int(total_microseconds/double(runs)) << std::endl;
+  std::cout << "Milliseconds (avg of " << runs << "): " << total_microseconds/double(runs)/1000 << std::endl;
   PrintAmplitudes(circuit.num_qubits, state_space, state);
 
   return 0;
