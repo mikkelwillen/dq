@@ -235,6 +235,7 @@ module mk_gates (W:real) : gates with r = W.t = {
       in flatten(umap dn (unflatten u))
     in vec(umap f (unvec v)) :> *st[k]
 
+  #[inline]
   def swap2 [k] (q:q) (r:q) (v:*st[k]) : *st[k] =
     assert (r > q && 0 <= q && q < k && 0 < r && r < k)
 	   (down (q+1) r (up q r v))
