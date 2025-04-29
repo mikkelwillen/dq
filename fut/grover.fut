@@ -47,7 +47,7 @@ entry test_grover n i = (grover n i).0
 
 entry bench_grover n =
   let v = (grover n 12).0
-  in (reverse v)[0:5] == [0,0,1,1,0]
+  in and (map2 (==) (reverse v)[0:5] [0,0,1,1,0])
 
 -- ==
 -- entry: bench_grover
