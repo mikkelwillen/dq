@@ -403,14 +403,8 @@ module mk_gates (W:real) : gates with r = W.t = {
   def distmax [n] (d:dist[n]) =
     reduce (\x y -> if W.(x.1 > y.1) then x else y) d[0] d
 
-
-  def unroll_factor : i64 = 8
-
   def repeat 'a n (f : i64 -> *a -> *a) (s:*a) : *a =
-    let s = loop s for i < n/unroll_factor do
-              #[unroll]
-              loop s for j < unroll_factor do f (i*unroll_factor+j) s
-    in loop s for i in n/unroll_factor*unroll_factor..<n do f i s
+    loop s = s for i in 0..<n do f i s
 
   def (<*<) 'a (f:q -> *a -> *a) (g:q -> *a -> *a) : q -> *a -> *a =
     \q (v:*a) : *a -> f q (g q v)

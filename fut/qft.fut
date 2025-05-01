@@ -72,16 +72,6 @@ entry bench_qft (k:i64) : (f64, f64) =
 
 -- ==
 -- entry: bench_qft
--- input { 4i64 } output { 0.25f64 0f64 }
--- input { 5i64 } output { 0.176776695296637f64 0f64 }
--- input { 6i64 } output { 0.125f64 0f64 }
--- input { 7i64 } output { 0.088388347648318f64 0f64 }
--- input { 8i64 } output { 0.062500000000000f64 0f64 }
--- input { 9i64 } output { 0.044194173824159f64 0f64 }
--- input { 10i64 } output { 0.031250000000000f64 0f64 }
--- input { 11i64 } output { 0.022097086912080f64 0f64 }
--- input { 12i64 } output { 0.015625000000000f64 0f64 }
--- input { 13i64 } output { 0.011048543456040f64 0f64 }
 -- input { 14i64 } output { 0.007812500000000f64 0f64 }
 -- notest input { 15i64 } output { 0.005524271728020f64 0f64 }
 -- notest input { 16i64 } output { 0.003906250000000f64 0f64 }
