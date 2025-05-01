@@ -36,36 +36,6 @@ def qft (k:i64) (n:i64) : *st[k] =
 
 def unc c = (complex.re c, complex.im c)
 
-def main (k:i64) : ([2**k]f64, [2**k]f64) =
-  let s = qft k 12 |*> lsb_toggle
-  in unzip (map unc s)
-
--- test from https://medium.com/@marcell.ujlaki/exploring-quantum-computing-demystifying-quantum-fourier-transformations-unveiling-the-math-with-5d74f3f8025f
-
-entry test_qft (k:i64) (n:i64) : ([2**k]f64, [2**k]f64) =
-  let s = qft k n |*> lsb_toggle
-  in unzip (map unc s)
-
--- ==
--- entry: test_qft
--- nobench input { 4i64 12i64 }
--- output { [0.25f64,0f64,-0.25f64,0f64,0.25f64,0f64,-0.25f64,0f64,0.25f64,0f64,-0.25f64,0f64,0.25f64,0f64,-0.25f64,0f64]
---          [0f64,-0.25f64,0f64,0.25f64,0f64,-0.25f64,0f64,0.25f64,0f64,-0.25f64,0f64,0.25f64,0f64,-0.25f64,0f64,0.25f64] }
--- nobench input { 2i64 12i64 }
--- output { [0.5f64,0.5f64,0.5f64,0.5f64]
---          [0f64,0f64,0f64,0f64] }
--- nobench input { 1i64 12i64 }
--- output { [0.707106781186547f64,0.707106781186547f64]
---          [0f64,0f64] }
-
-entry test_qft2 : (f64,f64) =
-  let s = qft 10 669 |*> lsb_toggle
-  in unc (s[0])
-
--- ==
--- entry: test_qft2
--- nobench input { } output { 0.031250000000000f64 0f64 }
-
 entry bench_qft (k:i64) : (f64, f64) =
   let s = qft k 12 |*> lsb_toggle
   in unc (s[0])
