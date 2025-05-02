@@ -22,6 +22,7 @@ def encNum [n] (i:i64) (s:*st[n]) : *st[n] =
 def oracle [n] i : stT[n] =
   encNum i >* cntrlZ (n-1) 0 >* encNum i
 
+#[noinline]
 def grover (n:i64) (i:i64) : (ket[n], f64) =
   let k = 2**n |> f64.i64 |> f64.sqrt
           |> (*(f64.pi/4)) |> f64.ceil |> i64.f64
@@ -34,8 +35,6 @@ def grover (n:i64) (i:i64) : (ket[n], f64) =
 -- Grover's algorithm searches for the index where the oracle
 -- returns 1, which it does for the binary encoding of the
 -- integer argument 12 (< 2**n). See tests below...
-
-def main n = grover n 12
 
 entry test_grover n i = (grover n i).0
 
