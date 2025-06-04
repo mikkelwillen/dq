@@ -7,6 +7,8 @@ structure Circuit : CIRCUIT = struct
              | Tensor of t * t
              | Seq of t * t
              | C of t
+             | RZ of real
+             | Repeat of int * t
 
   val ++ = op Seq
   val ** = op Tensor
@@ -17,7 +19,9 @@ structure Circuit : CIRCUIT = struct
               case t of
                   Tensor(t1,t2) => maybePar (p > 4) (pp 4 t1 ^ " ** " ^ pp 4 t2)
                 | Seq(t1,t2) => maybePar (p > 3) (pp 3 t1 ^ " ++ " ^ pp 3 t2)
+                | Repeat(n,t) => maybePar (p > 5) (Int.toString n ^ " x [" ^ pp 5 t ^ "]")
                 | C t => "C" ^ pp 8 t
+                | RZ _ => "RZ"
                 | I => "I" | X => "X" | Y => "Y" | Z => "Z" | H => "H" | T => "T" | SW => "SW"
                 | S => "S" | SX => "SX" | SY => "SY" | SZ => "SZ"
     in pp 0 t
@@ -28,12 +32,26 @@ structure Circuit : CIRCUIT = struct
           C t => collect_cntrl (n+1) t
         | _ => (n,t)
 
+  fun height t =
+      case t of
+        Tensor(a,b) => height a + height b
+      | Seq(a,b) =>
+        let val d = height a
+        in if d <> height b
+           then raise Fail "Sequence error: mismatching dimensions"
+           else d
+        end
+      | SW =>  2
+      | C t => 1 + height t
+        | _ => 1
+
   fun draw t =
       let fun dr t =
               case t of
                   SW => Diagram.swap
                 | Tensor(a,b) => Diagram.par(dr a, dr b)
                 | Seq(a,b) => Diagram.seq(dr a, dr b)
+                | Repeat(n,t) => Diagram.rep (n, height t, dr t)
                 | I => Diagram.line
                 | X => Diagram.box "X"
                 | Y => Diagram.box "Y"
@@ -44,6 +62,7 @@ structure Circuit : CIRCUIT = struct
                 | SX => Diagram.box "SX"
                 | SY => Diagram.box "SY"
                 | SZ => Diagram.box "SZ"
+                | RZ _ => Diagram.box "R"
                 | C t' =>
                   case collect_cntrl 1 t' of
                       (n,X) => Diagram.cntrln n "X"
@@ -52,6 +71,7 @@ structure Circuit : CIRCUIT = struct
                     | (n,H) => Diagram.cntrln n "H"
                     | (n,T) => Diagram.cntrln n "T"
                     | (n,S) => Diagram.cntrln n "S"
+                    | (n, RZ _) => Diagram.cntrln n "R"
                     | (n,_) => raise Fail ("Circuit.draw: Controlled circuit " ^
                                            pp t ^ " cannot be drawn")
       in dr t |> Diagram.toString
@@ -65,6 +85,7 @@ structure Circuit : CIRCUIT = struct
                   SW => DiagramL.swap
                 | Tensor(a,b) => DiagramL.par(dr a, dr b)
                 | Seq(a,b) => DiagramL.seq(dr a, dr b)
+                | Repeat(n,t) => DiagramL.rep (n, (height t), (dr t))
                 | I => DiagramL.line
                 | X => DiagramL.box "X"
                 | Y => DiagramL.box "Y"
@@ -75,6 +96,7 @@ structure Circuit : CIRCUIT = struct
                 | SX => DiagramL.box "\\sqrt{X}"
                 | SY => DiagramL.box "\\sqrt{Y}"
                 | SZ => DiagramL.box "\\sqrt{Z}"
+              | RZ _ => DiagramL.box "RZ"
                 | C t' =>
                   case collect_cntrl 1 t' of
                       (n,X) => DiagramL.cntrln n "X"
@@ -90,18 +112,5 @@ structure Circuit : CIRCUIT = struct
                                            pp t ^ " cannot be drawn")
       in dr t |> DiagramL.toString
       end
-
-  fun height t =
-      case t of
-          Tensor(a,b) => height a + height b
-        | Seq(a,b) =>
-          let val d = height a
-          in if d <> height b
-             then raise Fail "Sequence error: mismatching dimensions"
-             else d
-          end
-        | SW =>  2
-        | C t => 1 + height t
-        | _ => 1
 
 end

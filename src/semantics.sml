@@ -4,6 +4,7 @@ structure Semantics :> SEMANTICS = struct
 
   structure C = Complex
   structure M = Matrix
+  structure R = Random
 
   type complex = C.complex
   type mat = C.complex M.t
@@ -19,8 +20,8 @@ structure Semantics :> SEMANTICS = struct
 
   fun pp_mat (m:mat) : string =
       let val m = M.map pp_c m |> M.memoize
-          val sz = foldl (fn (e,a) => Int.max(a,size e)) 1
-                         (List.concat (M.listlist m))
+        val sz = foldl (fn (e,a) => Int.max(a,size e)) 1
+                       (List.concat (M.listlist m))
       in M.pp sz (fn x => x) m
       end
 
@@ -31,11 +32,11 @@ structure Semantics :> SEMANTICS = struct
   (* See https://en.wikipedia.org/wiki/Kronecker_product *)
   fun tensor (a: mat,b:mat) : mat =
       let val (m,n) = M.dimensions a
-          val (p,q) = M.dimensions b
+        val (p,q) = M.dimensions b
       in M.tabulate(m * p, n * q,
-                     fn (i,j) =>
-                        C.* (M.sub(a,i div p, j div q),
-                             M.sub(b,i mod p, j mod q))
+                    fn (i,j) =>
+                      C.* (M.sub(a,i div p, j div q),
+                           M.sub(b,i mod p, j mod q))
                    ) |> M.memoize
       end
 
@@ -47,10 +48,10 @@ structure Semantics :> SEMANTICS = struct
       let val n = M.nRows m
       in M.tabulate(2*n,2*n,
                     fn (r,c) =>                        (* 1 0 0 0 *)
-                       if r >= n andalso c >= n        (* 0 1 0 0 *)
-                       then M.sub(m,r-n,c-n)           (* 0 0 a b *)
-                       else if r = c then C.fromInt 1  (* 0 0 c d *)
-                       else C.fromInt 0)
+                      if r >= n andalso c >= n        (* 0 1 0 0 *)
+                      then M.sub(m,r-n,c-n)           (* 0 0 a b *)
+                      else if r = c then C.fromInt 1  (* 0 0 c d *)
+                      else C.fromInt 0)
       end
 
   fun fromIntM iss : mat =
@@ -58,42 +59,49 @@ structure Semantics :> SEMANTICS = struct
 
   fun sem (t:Circuit.t) : mat =
       let open Circuit
-          val c0 = C.fromInt 0
-          val c1 = C.fromInt 1
-          val ci = C.fromIm 1.0
-          val rsqrt2 = C.fromRe (1.0 / Math.sqrt 2.0)
-          val eipi4 = C.exp(C.fromIm(Math.pi/4.0))
-          fun add x y = C.+(x,y)
-          fun sub x y = C.-(x,y)
-          fun half x = C./(x,C.fromInt 2)
+        val c0 = C.fromInt 0
+        val c1 = C.fromInt 1
+        val ci = C.fromIm 1.0
+        val rsqrt2 = C.fromRe (1.0 / Math.sqrt 2.0)
+        val eipi4 = C.exp(C.fromIm(Math.pi/4.0))
+        fun negetheta2 theta = C.exp(C.fromIm(~1.0*theta/2.0))
+        fun etheta2 theta = C.exp(C.fromIm(1.0*theta/2.0))
+        fun add x y = C.+(x,y)
+        fun sub x y = C.-(x,y)
+        fun half x = C./(x,C.fromInt 2)
       in case t of
-             I => fromIntM [[1,0],
-                            [0,1]]
-           | X => fromIntM [[0,1],
-                            [1,0]]
-           | Y => M.fromListList [[c0,C.~ ci],
-                                  [ci,c0]]
-           | Z => fromIntM [[1,0],
-                            [0,~1]]
-           | H => M.fromListList [[rsqrt2,rsqrt2],
-                                  [rsqrt2,C.~ rsqrt2]]
-           | T => M.fromListList [[c1,c0],
-                                  [c0,eipi4]]
-           | S => M.fromListList [[c1,c0],
-                                  [c0,ci]]
-           | SX => M.fromListList [[add c1 ci,sub c1 ci],
-                                   [sub c1 ci,add c1 ci]]
-           | SY => let val a = half(add c1 ci)
-                   in M.fromListList [[a,C.~a],[a,a]]
-                   end
-           | SZ => sem S
-           | SW => fromIntM [[1,0,0,0],
-                             [0,0,1,0],
-                             [0,1,0,0],
-                             [0,0,0,1]]
-           | Seq(t1,t2) => matmul(sem t2,sem t1)
-           | Tensor(t1,t2) => tensor(sem t1,sem t2)
-           | C t => control (sem t)
+           I => fromIntM [[1,0],
+                          [0,1]]
+         | X => fromIntM [[0,1],
+                          [1,0]]
+         | Y => M.fromListList [[c0,C.~ ci],
+                                [ci,c0]]
+         | Z => fromIntM [[1,0],
+                          [0,~1]]
+         | H => M.fromListList [[rsqrt2,rsqrt2],
+                                [rsqrt2,C.~ rsqrt2]]
+         | T => M.fromListList [[c1,c0],
+                                [c0,eipi4]]
+         | S => M.fromListList [[c1,c0],
+                                [c0,ci]]
+         | SX => M.fromListList [[add c1 ci,sub c1 ci],
+                                 [sub c1 ci,add c1 ci]]
+         | SY => let val a = half(add c1 ci)
+           in M.fromListList [[a,C.~a],[a,a]]
+           end
+         | SZ => sem S
+         | SW => fromIntM [[1,0,0,0],
+                           [0,0,1,0],
+                           [0,1,0,0],
+                           [0,0,0,1]]
+         | RZ theta => M.fromListList [[negetheta2 theta, c0],
+                                        [c0, etheta2 theta]]
+         | Seq(t1,t2) => matmul(sem t2,sem t1)
+         | Tensor(t1,t2) => tensor(sem t1,sem t2)
+         | C t => control (sem t)
+         | Repeat(n, t) => let val m = sem t
+           in foldl (fn (_,a) => matmul(m,a)) m (List.tabulate(n-1,fn _ => m))
+           end
       end
 
   type ket = int list (* list of 0's and 1's *)
@@ -114,12 +122,165 @@ structure Semantics :> SEMANTICS = struct
 
   fun pp_state (v:state) : string =
       let val v = Vector.map pp_c v
-          val sz = Vector.foldl (fn (e,a) => Int.max(a,size e)) 1 v
+        val sz = Vector.foldl (fn (e,a) => Int.max(a,size e)) 1 v
       in M.ppv sz (fn x => x) v
       end
 
   fun eval (x:Circuit.t) (v:state) : state =
       M.matvecmul_gen C.* C.+ (C.fromInt 0) (sem x) v
+
+
+  (* Helper functions *)
+  fun bitAt (n, i) = (n div (IntInf.pow (2, i))) mod 2 = 1
+
+  fun complexDivReal (z, r) = C./ (z, C.fromRe r)
+
+  (* Calculate the probability of measuring 0 and 1 *)
+  (* in the given state for the specified qubit index *)
+  fun calcProbability stateSize state qubitIndex =
+      let
+        fun loop (idx, (p0, p1)) =
+            if idx >= stateSize then
+              (p0, p1)
+            else
+              let
+                val amplitude = Vector.sub (state, idx)
+                val prob = Math.pow (Complex.re (Complex.abs amplitude), 2.0)
+                val bit = bitAt (IntInf.fromInt idx, qubitIndex)
+                val (newP0, newP1) =
+                  if bit then (p0, p1 + prob) else (p0 + prob, p1)
+              in
+                loop (idx + 1, (newP0, newP1))
+              end
+      in
+        loop (0, (0.0, 0.0))
+      end
+
+  (* return list of bits chosen at random *)
+  (* `true` if random number is less than `prob`, `false` otherwise *)
+  fun sampleBits n prob rng : bool list =
+      let fun loop list i =
+          if i >= n then
+            list
+          else
+            let val randVal = R.random rng
+              val randValShifted = randVal * 100000.0 - Real.fromInt (Real.trunc (randVal * 100000.0))
+              val result = randValShifted < prob
+            in
+              loop (list @ [result]) (i + 1)
+            end
+      in
+        loop [] 0
+      end
+
+  (* Collapse the state based on the measured bit *)
+  fun collapseState stateSize state qubitIndex measuredBit =
+      let
+        fun collapseIndex idx =
+            let
+              val amplitude = Vector.sub (state, idx)
+              val bit = bitAt (IntInf.fromInt idx, qubitIndex)
+            in
+              if bit = measuredBit then
+                amplitude
+              else
+                C.fromRe 0.0
+            end
+      in
+        Vector.tabulate (stateSize, collapseIndex)
+      end
+
+  (* Normalize the collapsed state *)
+  fun normalizeState state =
+      let
+        val normSquared = Vector.foldl (fn (amp, acc) => acc + Math.pow (C.re (C.abs amp), 2.0)) 0.0 state
+        val norm = Math.sqrt normSquared
+      in
+        if Real.==(norm, 0.0) then state
+        else Vector.map (fn amp => complexDivReal (amp, norm)) state
+      end
+
+  (* Measure i'th qubit in state s, return (result, new state) *)
+  (* results is chosen at random, with probability from the state *)
+  fun measureQubit (state: state) (qubitIndex: int) : bool * state =
+      let
+        val stateSize = Vector.length state
+
+        (* Calculate probability of measuring 0 and 1 *)
+        val (_, prob1) = calcProbability stateSize state qubitIndex
+
+        (* Generate random result based on probability *)
+        val rng = R.newgen ()
+        val list = sampleBits 1 prob1 rng
+        val measuredBit = List.hd list
+
+        val collapsed = collapseState stateSize state qubitIndex measuredBit
+
+        val normalized = normalizeState collapsed
+
+      in
+        (* Print debug information *)
+        print("measuredBit: " ^ Bool.toString measuredBit ^ "\n");
+        print("prob1: " ^ Real.toString prob1 ^ "\n");
+
+        (measuredBit, normalized)
+      end
+
+  (* Measure i'th qubit in the given state `n` times and return *)
+  (* the result measured the most times and the new state *)
+  fun measureNQubits (state: state) (qubitIndex: int) (n: int) : bool * state =
+      let
+        val stateSize = Vector.length state
+
+        (* Calculate probability of measuring 0 and 1 *)
+        val (_, prob1) = calcProbability stateSize state qubitIndex
+
+        (* Generate random result based on probability n times and return *)
+        (* the number found the most times *)
+        val rng = R.newgen ()
+        val list = sampleBits n prob1 rng
+        fun countBits (list: bool list) =
+            List.foldl (fn (bit, (count0, count1)) =>
+                if bit then (count0, count1 + 1)
+                else (count0 + 1, count1)) (0, 0) list
+
+        val (count0, count1) = countBits list
+        val measuredBit = count0 < count1
+
+        (* Collapse the state based on the measured bit *)
+        val collapsed = collapseState stateSize state qubitIndex measuredBit
+
+        (* Normalize the collapsed state *)
+        val normalized = normalizeState collapsed
+
+      in
+        (* Print debug information *)
+        print("count0: " ^ Int.toString count0 ^ "\n");
+        print("count1: " ^ Int.toString count1 ^ "\n");
+        print("prob1: " ^ Real.toString prob1 ^ "\n");
+
+        (measuredBit, normalized)
+      end
+
+  (* Measure i'th qubit in the given state `n`times and return the *)
+  (* distribution of the results *)
+  fun measureNQubitsDist (state: state) (qubitIndex: int) (n: int) : bool list =
+      let
+        val stateSize = Vector.length state
+
+        (* Calculate probability of measuring 0 and 1 *)
+        val (_, prob1) = calcProbability stateSize state qubitIndex
+
+        (* Generate random result based on probability n times and return *)
+        (* the distribution of the results *)
+        val rng = R.newgen ()
+        val list = sampleBits n prob1 rng
+      in
+        (* Print debug information *)
+        print("prob1: " ^ Real.toString prob1 ^ "\n");
+
+        list
+      end
 
   (* Probability distributions *)
 

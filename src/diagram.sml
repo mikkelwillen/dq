@@ -9,12 +9,16 @@ sig
   val swap     : t                   (* dim 2 *)
   val par      : t * t -> t          (* dim(seq(a,b)) = max(dim a, dim b) *)
   val seq      : t * t -> t          (* dim(par(a,b)) = dim a + dim b *)
+  val rep      : int * int * t -> t
   val toString : t -> string
 end
 
 structure Diagram :> DIAGRAM =
 struct
   type t = string list  (* lines; invariant: lines have equal size *)
+
+  (* Set to true for compact representation of circuits *)
+  val compact_p = false
 
   fun spaces i = CharVector.tabulate(i, fn _ => #" ")
 
@@ -26,8 +30,6 @@ struct
 
   fun width nil = 0
     | width (x::_) = size x
-
-  val compact_p = false
 
   fun cntrln_compact n s =
       if n <= 0 then [s]
@@ -82,6 +84,36 @@ struct
       end
 
   fun seq (a:t,b:t) : t = mapi2 (fn (i,a,b) => a ^ sep i ^ b) (a,b)
+
+  fun vline 1 = ["|  ", "|--", "|  ", "|  "]
+    | vline h =
+      let val l = ["|  ", "|--", "|  ", "|  "]
+      in l @ vline (h-1)
+      end
+
+  fun rline 1 = ["|", "|", "|", "|"]
+    | rline h =
+      let val l = ["|", "|", "|", "|"]
+      in rline (h-1) @ l
+      end
+
+  fun lvline (h: int, n: int) : t =
+      let val ml = ["|  ", "|" ^ Int.toString n ^ "x", "|  ", "|  "]
+          val l = ["|  ", "|--", "|  ", "|  "]
+      in if ((h mod 2) = 0) then
+            vline ((h-1) div 2) @ ml @ l @ vline ((h-1) div 2)
+         else
+            vline (h div 2) @ ml @ vline (h div 2)
+      end
+
+  fun rep (n: int, h: int, a: t) : t =
+      let val l = lvline (h, n)
+          val rl = rline h
+      in
+        let val ll = mapi2 (fn (i, l, a) => l ^ sep i ^ a) (l, a)
+        in mapi2 (fn (i, ll, rl) => ll ^ sep i ^ rl) (ll, rl)
+        end
+      end
 
   fun toString (a:t) : string =
       let val a = mapi (padi (width a + 4)) a

@@ -1,0 +1,4 @@
+local $(SML_LIB)/basis/basis.mlb
+      ../execute.mlb
+in grover_replicate.sml
+end

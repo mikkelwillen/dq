@@ -1,0 +1,148 @@
+* Meetings
+** 29/4-2025
+*** Status
+- Semantics of replicate has been implemented and seems to work as expected
+- PP of replicate has been implemented (but is not very pretty)
+- Draw of replicate has been implemented (but is not very pretty)
+*** Questions
+- What is the idea with measurements?
+  - Should it be a function that takes a distribution and with a random function with the probabilities from the distribution picks one?
+*** Next steps
+- Implement repeat/replicate
+  - Find new char for signal start and end of replicate
+  - Calc dynamic length of n
+  - fun idea: negative values of n, reverse circuit and apply
+- Implement measurements
+  - Implement measureQubit
+  - takes qubit identifyer and state
+  - collapses state of qubit, pick output with random function and returns new state and bool
+- Implement control flow based on measurements
+- Implement multishot functionality
+
+** 6/5-2025
+*** Status
+- replicate renamed repeat
+- measureQubit has been implemented
+  - small tests have been made
+  - hacky random usages
+*** Questions
+- How to use sml-random
+*** Next steps
+- How does qrisp do it?
+- Concrete examples with measurements
+
+** 13/5-2025
+*** Status
+- Wrote a little on the report
+- Cant find examples of qrisp doing it
+- With Cirq, you can change the state: https://github.com/quantumlib/Cirq/blob/v1.5.0/cirq-core/cirq/sim/state_vector.py*L168-L230
+- Seems to me it is embedded.
+
+*** Questions
+*** Next steps
+- Look for examples with measure_state_vector in cirq
+- Remember endian
+- Check measurement based quantum computing
+- Implement control flow and multi shot
+- Try to make a control flow example.
+- If, combinator, som tager argumenter og laver measurement
+  - bool * state * cir * cir -> state
+  - need to check state fits with cirs
+- aggregate the state vectors based on the the boolean chosen with weigths
+- monadic state transformer
+  - invariant with size of circs
+- Look at martins grover vs. ours.
+  
+- Report
+  - introduction
+  - What is the hypothesis
+    - implement measurements
+    - why?
+    - CGI - context, gap and innovation
+    - Describe the sections
+  - Background
+  - Design
+  - Implementation
+  - Evaluation section
+	
+
+** 20/5-2025
+*** Status
+- Refactor measurement
+- Implemented multishot sampling returning most seen outcome and new state
+- Implemented multishot sampling returning list of outcomes.
+- wrote a bit more report.
+- Hypothesis?
+  - Extending the DQ quantum simulation framework with projective measurement functionality will enable accurate and consistent simulation of quantum-classical interactions, such that measured outcomes can be used to influence classical control flow without deviating from the expected theoretical distribution and post-measurement state behavior.
+        - Motivation
+*** Questions
+- What is supposed to be in the design section?
+  - use the implemented functions to implement examples, such as shors
+  - Discuss embedded vs. selfcontained language
+- Monadic state transformer - Future work
+  - Is it to make a state monad, where the functions work on that?
+- Handin date? it is 9/6-2025
+*** Next steps
+- Control flow example
+  - Error correction with ancilla - read about it, maybe reflect on possible implementation
+  - Shors algorithm with QFT - implement
+    - read about it and figure out how it uses QFT
+- If, combinator, som tager argumenter og laver measurement
+  - bool * state * cir * cir -> state
+  - need to check state fits with cirs
+- Call studenter help
+
+
+** 27/5-2025
+*** Status
+- More report.
+- Contacted student service
+*** TODO:
+- General idea is to implement Shors
+        - We have made some of the building blocks
+- Error corrections.
+        - Discuss error correction, where we have errors on the circuit, how do we deal with this
+        - Read up on how errors `sker` on the result for the quantum computer
+        - How could we mitigate this in a quantum circuit
+
+*** Next steps
+- Fix QFT
+- Find shors algorithm example.
+        - if true
+          then try to implement naive with static example
+          - else
+            round of.
+
+** 3/6-2025
+*** Status
+- Rounding off
+- Fixed QFT in SML (hopefully)
+- Wrote about QFT and Shor's in background sections
+- Wrote implementation section
+- Wrote about QEC in evalulation/discussion
+
+*** Questions
+- Should the hypothesis be about shors, and then we have subhypotheses about measurements and QFT?
+  - alternatively it should be measurements, and then shors, qft and QEC is to show the usecase
+- Should I write about the repeat functionality?
+- Should evaluation be some tests?
+- How should i handin the code? PR?
+
+*** TODO
+- Write about shors in evaluation/discussion
+- Write about repeat - circuits that need parameterized based
+- Discuss measurements
+  - Lambda kalkyle
+  - Currently all of SML is the classical language
+  - discuss embedded
+
+  - it should be measurements, and then shors, qft and QEC is to show the usecase
+ - No newlines
+
+- write test with control gate
+- measure state multiple times
+  - measurement of same qubit should be the same
+- discuss testing of measurements.
+  - on quantum hardware we cant get the dist
+
+- make fork, add readme with contributions, and handin zip of repo.

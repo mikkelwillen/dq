@@ -1,0 +1,4 @@
+local $(SML_LIB)/basis/basis.mlb
+      quantum.mlb
+in measure_ex2.sml
+end

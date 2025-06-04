@@ -6,6 +6,7 @@ structure DiagramLatex :> DIAGRAM = struct
              | Swap
              | Par of t * t
              | Seq of t * t
+             | Rep of int * int * t
 
   fun depth t : int =
       case t of
@@ -15,6 +16,7 @@ structure DiagramLatex :> DIAGRAM = struct
         | Swap => 1
         | Par (t1,t2) => Int.max(depth t1, depth t2)
         | Seq(t1,t2) => depth t1 + depth t2
+        | Rep (_,_,t) => depth t
 
   fun height t : int =
       case t of
@@ -24,6 +26,7 @@ structure DiagramLatex :> DIAGRAM = struct
         | Swap => 2
         | Par (t1,t2) => height t1 + height t2
         | Seq(t1,t2) => Int.max(height t1, height t2)
+        | Rep (_,_,t) => height t
 
   val dy = 10
   val dx = 10
@@ -116,6 +119,7 @@ structure DiagramLatex :> DIAGRAM = struct
              else
                toStr x (y - dy*(height t1)) t2 (toStr x y t1 a)
           end
+        | Rep (n,h,t) => toStr x (y - dy) (padl t) a
 
   fun toString t =
       let val (h,d) = (height t, depth t)
@@ -131,5 +135,6 @@ structure DiagramLatex :> DIAGRAM = struct
   val swap = Swap
   val seq = Seq
   val par = Par
+  val rep = Rep
 
 end

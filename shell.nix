@@ -1,5 +1,8 @@
 { pkgs ? import <nixpkgs> {} }:
 pkgs.stdenv.mkDerivation {
+  shellHook = ''
+    fish
+  '';
   name = "dq";
   buildInputs =
     [pkgs.cacert

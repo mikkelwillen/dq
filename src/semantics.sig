@@ -14,6 +14,12 @@ sig
   val init     : ket -> state
   val eval     : Circuit.t -> state -> state (* use sem *)
 
+  val measureQubit : state -> int -> bool * state
+  val measureNQubits : state -> int -> int -> bool * state
+  val measureNQubitsDist : state -> int -> int -> bool list
+
+  (* val iff : bool * state * Circuit.t * Circuit.t -> state *)
+
   type dist = (ket*real) vector
   val pp_dist      : dist -> string
   val measure_dist : state -> dist
