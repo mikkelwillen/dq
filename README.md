@@ -1,113 +1,38 @@
-# dq - The DIKU Quantum Simulation Framework [![CI](https://github.com/diku-dk/dq/workflows/CI/badge.svg)](https://github.com/diku-dk/dq/actions)
+# Measurements in DQ
+This project is about implementing measurements in the DQ framework, and showing
+some usecases for measurements in quantum computing.
 
-This repository contains the sources for __dq__ - the DIKU Quantum Simulation
-Framework. The source code is structured to separate the concerns of specifying
-and drawing circuits from providing a semantics and an evaluation framework for
-circuits.
+By: Mikkel Willén
 
-Multiple state-vector simulators are available ranging from semantics-based
-simulators, based on the unitaries that circuits denote, over more efficient
-simulators where gates work directly as strided operations over a global state
-vector, to specialising simulators that work by generating optimised
-data-parallel code to be executed on GPUs. These GPU simulators are based on a
-Futhark quantum simulation library, which is also part of the sources.
+## Contributions
+Below are the contributions this project adds to the DQ framework, shortly 
+explaing what it is about, and in what files they have been implemented.
 
-The framework also provides tools for converting between circuit
-representations.
+### Measurements
+Measurements have been implemented in `semantics.sml` and is composed of the
+functions:
+`measureQubit : state -> int -> bool * state`
+which takes a state and a qubit index as input, and returns a measurement of the
+qubit and the state collapsed around the result.
+The measured qubit is determined, by generating a random number between `0` and 
+`1`, and returning `1` if the generated number is less than the probability of
+the qubit being in state `1`, or `0` otherwise. 
+`measureNQubits : state -> int -> int -> bool * state`
+works the same way as `measureQubit`, but generates `n` random numbers, compares
+them to the probability of the qubit being in state `1`, and then returns the 
+state that is most frequently measured. Then it collapses the state around that
+measurement.  
+2 small tests of measurements have been added in the files `measure_ex2.sml` and `entangle_ex1.sml`, showing that measuring the same qubit again after collapse,
+returns the same measured value, and that measuring a control qubit, will result
+in the controlled qubits state to be known.
 
-## Library Structure
+### QFT
+The Quantum Fourier Transform (QFT) has been implemented in `qft.sml` and 
+exposes the function `qft_circuit : int -> int -> Citcuit.t`, which given the 
+inputs `k`, number of qubits and `n`, the number to be incoded, returns the 
+QFT circuit encoding `n` in on a circuit with `k` qubits. 
+It is based on: https://medium.com/@marcell.ujlaki/exploring-quantum-computing-demystifying-quantum-fourier-transformations-unveiling-the-math-with-5d74f3f8025f
 
-- `fut/`: [Futhark](http://futhark-lang.org) data-parallel [gate library](/fut/dqfut.fut).
-  The library can be used on its own for writing
-  quantum algorithms (e.g., [Grover's algorithm](/fut/grover.fut) or [QFT](/fut/qft.fut)) or it can be
-  used as a target library for high-level languages. The library supports gate
-  fusion for 1-qubit gates as long as gates are applied immediately after each
-  other on the same qubit.
 
-- `src/`: Modules for specifying and drawing circuits, modules for giving the
-  semantics for circuits, modules for executing circuits and for compiling
-  circuits into data-parallel Futhark code, tool `qsim2fut` for parsing
-  [qsim](https://github.com/quantumlib/qsim) circuit files and converting them
-  into futhark programs.
-
-- `examples/`: Example quantum algorithms. Currently, only Grover's algorithm is
-  available...
-
-## Dependencies
-
-The framework builds with both the [MLKit](https://github.com/melsman/mlkit) and
-[MLton](http://mlton.org/) compilers and uses
-[`smlpkg`](https://github.com/diku-dk/smlpkg) to fetch relevant libraries,
-including [`sml-complex`](https://github.com/diku-dk/sml-complex) and
-[`sml-matrix`](https://github.com/diku-dk/sml-matrix), libraries for easily
-working with complex numbers and matrices in Standard ML.
-
-On macos, you may install `smlpkg` and `mlkit` using `brew install smlpkg
-mlkit`, assuming you have Homebrew installed.
-
-On Linux, you may download binaries from the respective repositories.
-
-As mentioned, the framework also supports the generation of
-[Futhark](http://futhark-lang.org) [1] code for simulating circuits. Futhark is
-available for most platforms. For installation details, see
-[http://futhark-lang.org](http://futhark-lang.org).
-
-## Compiling the Source Code
-
-To compile the source code and run the tests, just execute `make test` in the
-source directory. The default is to use `mlkit` as a compiler. If you must use
-MLton, execute `MLCOMP=mlton make test` instead.
-
-## Simple Example Run
-
-Here is a simple example run:
-```
-$ cd src
-$ mlkit quantum_ex1.mlb
-...
-bash-3.2$ ./run
-Circuit for c = (I ** H oo CX oo Z ** Z oo CX oo I ** H) ** I oo I ** SW oo CX ** Y:
-              .---.
-----------*---| Z |---*-----------------*----
-          |   '---'   |                 |
-          |           |                 |
-  .---. .-+-. .---. .-+-. .---.       .-+-.
---| H |-| X |-| Z |-| X |-| H |-.   .-| X |--
-  '---' '---' '---' '---' '---'  \ /  '---'
-                                  /
-                                 / \  .---.
---------------------------------'   '-| Y |--
-                                      '---'
-Semantics of c:
-~i  0  0  0  0  0  0  0
- 0  0  i  0  0  0  0  0
- 0 ~i  0  0  0  0  0  0
- 0  0  0  i  0  0  0  0
- 0  0  0  0  0 ~i  0  0
- 0  0  0  0  0  0  0  i
- 0  0  0  0 ~i  0  0  0
- 0  0  0  0  0  0  i  0
-Result distribution when evaluating c on |101> :
-|000> : 0
-|001> : 0
-|010> : 0
-|011> : 0
-|100> : 1
-|101> : 0
-|110> : 0
-|111> : 0
-```
-
-## Larger Examples
-
-1. The framework contains an implementation of Grover's algorithm written using
-   Standard ML combinators (`examples/grover/grover.sml`) and an implementation
-   written directly in Futhark using Futhark state-vector transformations
-   (`fut/grover.fut`).
-
-## Literature
-
-[1] Martin Elsman, Troels Henriksen, and Cosmin Oancea. Parallel Programming in
-Futhark. Edition 0.8. Department of Computer Science, University of
-Copenhagen. Edition Nov
-22, 2023. [latest-pdf](https://readthedocs.org/projects/futhark-book/downloads/pdf/latest/).
+### Repeat operator
+A repeat operator has been added to the circuit type. It takes a circuit `Circuit.t` and an integer `n`, semantically means applying the circuit `n` times on the state.

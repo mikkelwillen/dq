@@ -119,7 +119,7 @@ structure DiagramLatex :> DIAGRAM = struct
              else
                toStr x (y - dy*(height t1)) t2 (toStr x y t1 a)
           end
-        | Rep (n,h,t) => toStr x (y - dy) (padl t) a
+        | Rep (n,h,t) => raise Fail "Rep not supported in DiagramLatex"
 
   fun toString t =
       let val (h,d) = (height t, depth t)

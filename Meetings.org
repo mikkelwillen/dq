@@ -129,20 +129,18 @@
 - How should i handin the code? PR?
 
 *** TODO
-- Write about shors in evaluation/discussion
-- Write about repeat - circuits that need parameterized based
 - Discuss measurements
-  - Lambda kalkyle
   - Currently all of SML is the classical language
   - discuss embedded
-
-  - it should be measurements, and then shors, qft and QEC is to show the usecase
- - No newlines
-
-- write test with control gate
-- measure state multiple times
-  - measurement of same qubit should be the same
+- it should be measurements, and then shors, qft and QEC is to show the usecase
 - discuss testing of measurements.
   - on quantum hardware we cant get the dist
-
 - make fork, add readme with contributions, and handin zip of repo.
+
+*** DONE:
+- Tests:
+  - write test with control gate
+  - measure state multiple times
+- Write about shors in evaluation/discussion - done
+- No newlines
+- Write about repeat - circuits that need parameterized based repetition
