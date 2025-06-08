@@ -25,7 +25,8 @@ them to the probability of the qubit being in state `1`, and then returns the
 state that is most frequently measured. Then it collapses the state around that
 measurement.  
 
-Similarly `measureNQubitsDist : state -> int -> int -> bool list`
+Similarly `measureNQubitsDist : state -> int -> int -> bool list` 
+generates a list of `n` measurement outcomes without collapsing the state.  
 
 2 small tests of measurements have been added in the files `measure_ex2.sml` and `entangle_ex1.sml`, showing that measuring the same qubit again after collapse,
 returns the same measured value, and that measuring a control qubit, will result
