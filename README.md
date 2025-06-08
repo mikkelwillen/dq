@@ -10,18 +10,23 @@ explaing what it is about, and in what files they have been implemented.
 
 ### Measurements
 Measurements have been implemented in `semantics.sml` and is composed of the
-functions:
+functions:  
+
 `measureQubit : state -> int -> bool * state`
 which takes a state and a qubit index as input, and returns a measurement of the
 qubit and the state collapsed around the result.
 The measured qubit is determined, by generating a random number between `0` and 
 `1`, and returning `1` if the generated number is less than the probability of
-the qubit being in state `1`, or `0` otherwise. 
+the qubit being in state `1`, or `0` otherwise.  
+
 `measureNQubits : state -> int -> int -> bool * state`
 works the same way as `measureQubit`, but generates `n` random numbers, compares
 them to the probability of the qubit being in state `1`, and then returns the 
 state that is most frequently measured. Then it collapses the state around that
 measurement.  
+
+Similarly `measureNQubitsDist : state -> int -> int -> bool list`
+
 2 small tests of measurements have been added in the files `measure_ex2.sml` and `entangle_ex1.sml`, showing that measuring the same qubit again after collapse,
 returns the same measured value, and that measuring a control qubit, will result
 in the controlled qubits state to be known.
