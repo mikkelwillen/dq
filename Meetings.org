@@ -129,10 +129,6 @@
 - How should i handin the code? PR?
 
 *** TODO
-- Discuss measurements
-  - Currently all of SML is the classical language
-  - discuss embedded
-- it should be measurements, and then shors, qft and QEC is to show the usecase
 - discuss testing of measurements.
   - on quantum hardware we cant get the dist
 - make fork, add readme with contributions, and handin zip of repo.
@@ -144,3 +140,7 @@
 - Write about shors in evaluation/discussion - done
 - No newlines
 - Write about repeat - circuits that need parameterized based repetition
+- Discuss measurements
+  - Currently all of SML is the classical language
+  - discuss embedded
+- it should be measurements, and then shors, qft and QEC is to show the usecase
